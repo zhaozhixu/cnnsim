@@ -4,22 +4,6 @@
 #include <stdint.h>
 #include <stdio.h>
 
-typedef enum {
-	CNS_FLASE = 0,
-	CNS_TRUE = 1
-} cns_bool_t;
-
-typedef enum {
-	CNS_BOOL,
-	CNS_FLOAT,
-	CNS_INT32,
-	CNS_INT16,
-	CNS_INT8,
-	CNS_UINT32,
-	CNS_UINT16,
-	CNS_UINT8
-} cns_dtype;
-
 typedef struct cns_cell_data {
 	uint8_t        input_width;
 	uint8_t        output_width;

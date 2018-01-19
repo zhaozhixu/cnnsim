@@ -2,6 +2,9 @@
 #include <limits.h>
 #include <unistd.h>
 #include <err.h>
+#include <assert.h>
+#include <string.h>
+#include <stdio.h>
 
 #include "cns_util.h"
 
@@ -66,4 +69,36 @@ char *cns_path_alloc(size_t *sizep)
      if (sizep != NULL)
           *sizep = size;
      return ptr;
+}
+
+void *cns_clone(const void *src, size_t size)
+{
+     assert(src);
+     void *p;
+     p = cns_alloc(size);
+     memmove(p, src, size);
+     return p;
+}
+
+void *cns_repeat(void *data, size_t size, int times)
+{
+     assert(data && times > 0);
+     void *p, *dst;
+     int i;
+     dst = p = cns_alloc(size * times);
+     for (i = 0; i < times; i++, p = (char *)p + size * times)
+          memmove(p, data, size);
+     return dst;
+}
+
+int cns_compute_length(uint32_t ndim, uint32_t *dims)
+{
+     if (dims) {
+          int i, len = 1;
+          for (i = 0; i < ndim; i++)
+               len *= dims[i];
+          return len;
+     }
+     fprintf(stderr, "Warning: null dims in computeLength\n");
+     return 0;
 }
