@@ -2,6 +2,7 @@
 
 #include "cns_cell.h"
 #include "cns_cell_op.h"
+#include "cns_tensor.h"
 #include "cns_util.h"
 
 int main(int argc, char *argv[])
@@ -32,5 +33,18 @@ int main(int argc, char *argv[])
 	/* } */
 
 	/* cns_cells_free(cells); */
-	printf("%d\n", CNS_UINT32);
+	uint32_t dims[] = {3, 4, 2, 3};
+	int8_t data[72];
+	/* cns_bool_t data[72]; */
+	int i;
+	for (i = 0; i < 72; i++) {
+		/* if (i % 2) { */
+		/* 	data[i] = -i; */
+		/* 	continue; */
+		/* } */
+		data[i] = 128;
+	}
+	cns_tensor *tensor = cns_tensor_create(4, dims, data, CNS_INT8);
+	cns_tensor_print(tensor, NULL);
+	cns_tensor_free(tensor, CNS_FLASE);
 }

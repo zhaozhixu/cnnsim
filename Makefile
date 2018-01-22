@@ -1,5 +1,7 @@
 .SUFFIXES:
 TARGET = cnnsim
+TEST_TARGET = test_$(TARGET)
+
 CC = gcc
 CUCC = nvcc
 
@@ -63,7 +65,7 @@ LDFLAGS += $(LIBS)
 .PHONY: all
 all: $(OUTDIR)/$(TARGET)
 
-$(OUTDIR)/$(TARGET): $(OBJS) $(CUOBJS) $(TESTOBJS)
+$(OUTDIR)/$(TARGET): $(OBJS) $(CUOBJS)
 	$(ECHO) Linking: $^
 	$(AT)$(CC) -o $@ $^ $(LDFLAGS)
 

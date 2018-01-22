@@ -31,7 +31,8 @@ void cns_cell_set_data(cns_cell *cell, void *input, void *output, void *weight)
 	cell->data.weight = weight;
 }
 
-void cns_cell_set_dtype(cns_cell *cell, int input_dtype, int output_dtype, int weight_dtype)
+void cns_cell_set_dtype(cns_cell *cell, int input_dtype,
+			int output_dtype, int weight_dtype)
 {
 	assert(cell);
 	cell->data.input_dtype = input_dtype;
@@ -54,27 +55,13 @@ void cns_cell_set_op(cns_cell *cell, cns_cell_op op)
 	cell->op = op;
 }
 
-cns_cell *cns_cells_create(uint32_t size)
+void cns_cell_set_dep(cns_cell *cell, ssize_t *dep)
 {
-	cns_cell *cells;
-	cells = (cns_cell *)cns_alloc(sizeof(cns_cell) * size);
-	return cells;
+	assert(cell);
+	cell->dep = dep;
 }
 
-void cns_cells_free(cns_cell *cells)
-{
-	cns_free(cells);
-}
-
-void cns_cells_run(cns_cell *cells, uint32_t size)
-{
-	assert(cells);
-	uint32_t i;		/* TODO: need to be parallized */
-	for (i = 0; i < size; i++)
-		cns_cell_run(&cells[i]);
-}
-
-void fprint_cell_data(FILE *fp, cns_cell *cell)
+void cns_cell_fprint_data(FILE *fp, cns_cell *cell)
 {
 	assert(cell);
 	fprintf(fp,
@@ -98,7 +85,40 @@ void fprint_cell_data(FILE *fp, cns_cell *cell)
 		cell->data.weight_dtype);
 }
 
-void print_cell_data(cns_cell *cell)
+void cns_cell_print_data(cns_cell *cell)
 {
-	fprint_cell_data(stdout, cell);
+	cns_cell_fprint_data(stdout, cell);
+}
+
+cns_cell_array *cns_cell_array_create(size_t size)
+{
+	assert(size > 0 && size <= CNS_MAX_CELLS);
+	cns_cell *cells;
+	cns_cell_array *cell_array;
+	size_t i;
+
+	cells = (cns_cell *)cns_alloc(sizeof(cns_cell) * size);
+	cell_array = (cns_cell_array *)cns_alloc(sizeof(cns_cell_array));
+	cell_array->cells = cells;
+	cell_array->size = size;
+
+	for (i = 0; i < size; i++)
+		cells[i].index = i;
+
+	return cell_array;
+}
+
+void cns_cell_array_free(cns_cell_array *cell_array)
+{
+	assert(cell_array);
+	cns_free(cell_array->cells);
+	cns_free(cell_array);
+}
+
+void cns_cell_array_run(cns_cell_array *cell_array)
+{
+	assert(cell_array && cell_array->cells);
+	size_t i;		/* TODO: need to be parallized */
+	for (i = 0; i < cell_array->size; i++)
+		cns_cell_run(&cell_array->cells[i]);
 }

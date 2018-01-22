@@ -69,14 +69,14 @@ cns_tensor *cns_tensor_alloc(uint32_t ndim, uint32_t *dims, cns_dtype dtype)
 		data = (void *)cns_alloc(sizeof(uint8_t) * t->len);
 		break;
 	default:
-		fprintf(stderr, "ERROR: unknown cns_dtype %d\n", dtype);
+		fprintf(stderr, "ERROR: cns_tensor_alloc: unknown cns_dtype %d\n", dtype);
 		exit(EXIT_FAILURE);
 	}
 	t->data = data;
 	return t;
 }
 
-void cns_tensor_free(cns_tensor *t, int do_free_data)
+void cns_tensor_free(cns_tensor *t, cns_bool_t do_free_data)
 {
 	assert(cns_tensor_is_valid(t));
 	cns_free(t->dims);
@@ -86,13 +86,85 @@ void cns_tensor_free(cns_tensor *t, int do_free_data)
 	cns_free(t);
 }
 
+static void fprint_float(FILE *fp, const char *fmt, void *data)
+{
+	if (fmt == NULL) {
+		fprintf(fp, "%f", *(float *)data);
+		return;
+	}
+	fprintf(fp, fmt, *(float *)data);
+}
+
+static void fprint_bool(FILE *fp, const char *fmt, void *data)
+{
+	if (fmt == NULL) {
+		fprintf(fp, "%d", *(cns_bool_t *)data);
+		return;
+	}
+	fprintf(fp, fmt, *(cns_bool_t *)data);
+}
+
+static void fprint_int32(FILE *fp, const char *fmt, void *data)
+{
+	if (fmt == NULL) {
+		fprintf(fp, "%d", *(int32_t *)data);
+		return;
+	}
+	fprintf(fp, fmt, *(int32_t *)data);
+}
+
+static void fprint_int16(FILE *fp, const char *fmt, void *data)
+{
+	if (fmt == NULL) {
+		fprintf(fp, "%d", *(int16_t *)data);
+		return;
+	}
+	fprintf(fp, fmt, *(int16_t *)data);
+}
+
+static void fprint_int8(FILE *fp, const char *fmt, void *data)
+{
+	if (fmt == NULL) {
+		fprintf(fp, "%d", *(int8_t *)data);
+		return;
+	}
+	fprintf(fp, fmt, *(int8_t *)data);
+}
+
+static void fprint_uint32(FILE *fp, const char *fmt, void *data)
+{
+	if (fmt == NULL) {
+		fprintf(fp, "%u", *(uint32_t *)data);
+		return;
+	}
+	fprintf(fp, fmt, *(uint32_t *)data);
+}
+
+static void fprint_uint16(FILE *fp, const char *fmt, void *data)
+{
+	if (fmt == NULL) {
+		fprintf(fp, "%u", *(uint16_t *)data);
+		return;
+	}
+	fprintf(fp, fmt, *(uint16_t *)data);
+}
+
+static void fprint_uint8(FILE *fp, const char *fmt, void *data)
+{
+	if (fmt == NULL) {
+		fprintf(fp, "%u", *(uint8_t *)data);
+		return;
+	}
+	fprintf(fp, fmt, *(uint8_t *)data);
+}
+
 void cns_tensor_fprint(FILE *stream, const cns_tensor *tensor, const char *fmt)
 {
 	assert(cns_tensor_is_valid(tensor));
 	uint32_t dim_sizes[CNS_MAXDIM];	/* dimision size */
-	uint32_t dim_levels[CNS_MAXDIM]; /* how deep current number go */
-	uint32_t ndim = tensor->ndim; /* pointer shortcuts */
-	uint32_t len = tensor->len;
+	uint32_t dim_levels[CNS_MAXDIM]; /* how deep current char goes */
+	uint32_t len = tensor->len; /* pointer shortcuts */
+	int ndim = (int)tensor->ndim; /* cast to int to perform some test */
 	uint32_t *dims = tensor->dims;
 	void *data = tensor->data;
 	cns_dtype dtype = tensor->dtype;
@@ -101,11 +173,54 @@ void cns_tensor_fprint(FILE *stream, const cns_tensor *tensor, const char *fmt)
 	char *lp = left_buf;
 	char *rp = right_buf;
 	size_t right_len;
+	int step;		/* step for data pointer adding */
+	void (* fprint_data) (FILE *, const char *, void *); /* print func for different types */
 	int i, j, k;
 
-	dim_sizes[ndim-1] = tensor->dims[ndim-1];
-	dim_levels[ndim-1] = 0;
-	for (i = ndim-2; i >= 0; i--) {
+	switch (tensor->dtype) {
+	case CNS_BOOL:
+		step = sizeof(cns_bool_t) / sizeof(uint8_t);
+		fprint_data = &fprint_bool;
+		break;
+	case CNS_FLOAT:
+		step = sizeof(float) / sizeof(uint8_t);
+		fprint_data = &fprint_float;
+		break;
+	case CNS_INT32:
+		step = sizeof(int32_t) / sizeof(uint8_t);
+		fprint_data = &fprint_int32;
+		break;
+	case CNS_INT16:
+		step = sizeof(int16_t) / sizeof(uint8_t);
+		fprint_data = &fprint_int16;
+		break;
+	case CNS_INT8:
+		step = sizeof(int8_t) / sizeof(uint8_t);
+		fprint_data = &fprint_int8;
+		break;
+	case CNS_UINT32:
+		step = sizeof(uint32_t) / sizeof(uint8_t);
+		fprint_data = &fprint_uint32;
+		break;
+	case CNS_UINT16:
+		step = sizeof(uint16_t) / sizeof(uint8_t);
+		fprint_data = &fprint_uint16;
+		break;
+	case CNS_UINT8:
+		step = sizeof(uint8_t) / sizeof(uint8_t);
+		fprint_data = &fprint_uint8;
+		break;
+	default:
+		fprintf(stderr, "ERROR: cns_tensor_fprint: unknown cns_dtype %d\n", dtype);
+		exit(EXIT_FAILURE);
+	}
+
+	for (i = ndim-1; i >= 0; i--) {
+		if (i == ndim-1) {
+			dim_sizes[i] = tensor->dims[i];
+			dim_levels[i] = 0;
+			continue;
+		}
 		dim_sizes[i] = dims[i] * dim_sizes[i+1];
 		dim_levels[i] = 0;
 	}
@@ -122,8 +237,9 @@ void cns_tensor_fprint(FILE *stream, const cns_tensor *tensor, const char *fmt)
 				if (j != 0 && dim_levels[j] > dim_levels[j-1]) {
 					*lp++ = '[';
 					dim_levels[j] = 2;
-				} else
+				} else {
 					dim_levels[j] = 0;
+				}
 			}
 		}
 		*lp = *rp = '\0';
@@ -137,10 +253,22 @@ void cns_tensor_fprint(FILE *stream, const cns_tensor *tensor, const char *fmt)
 		fprintf(stream, "%s", left_buf);
 		if (*left_buf == '\0')
 			fprintf(stream, " ");
-		fprintf(stream, fmt, data[i]);
+		(*fprint_data)(stream, fmt, (uint8_t *)data+i*step);
 		lp = left_buf, rp = right_buf;
 	}
 	for (j = 0; j < ndim; j++)
 		fprintf(stream, "]");
 	fprintf(stream, "\n");
+}
+
+void cns_tensor_print(const cns_tensor *tensor, const char *fmt)
+{
+	cns_tensor_fprint(stdout, tensor, fmt);
+}
+
+void cns_tensor_save(const char *filename, const cns_tensor *tensor, const char *fmt)
+{
+	FILE *fp = fopen(filename, "w");
+	cns_tensor_fprint(fp, tensor, fmt);
+	fclose(fp);
 }
