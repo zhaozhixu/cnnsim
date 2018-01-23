@@ -8,7 +8,7 @@ struct cns_list_node {
 	cns_list_node *next;
 };
 
-typedef cns_list_node *cns_list;
+typedef cns_list_node cns_list;
 
 cns_list *cns_list_append(cns_list *list, void *data);
 void cns_list_free(cns_list *list);
