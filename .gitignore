@@ -9,6 +9,7 @@
 *.txt
 *.avi
 *.org
+*.xml
 cnnsim
 cnnsim_test
 GPATH

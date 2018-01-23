@@ -56,5 +56,12 @@ void cns_cell_print_data(cns_cell *cell);
 cns_cell_array *cns_cell_array_create(size_t size);
 void cns_cell_array_free(cns_cell_array *cell_array);
 void cns_cell_array_run(cns_cell_array *cell_array);
+void cns_cell_array_set_data(cns_cell_array *array, size_t index,
+			void *input, void *output, void *weight);
+void cns_cell_array_set_width(cns_cell_array *array, size_t index,
+			uint8_t input_width, uint8_t output_width, uint8_t weight_width);
+void cns_cell_array_set_dtype(cns_cell_array *array, size_t index,
+			int input_dtype, int output_dtype, int weight_dtype);
+void cns_cell_array_set_op(cns_cell_array *array, size_t index, cns_cell_op op);
 
 #endif	/* _CNS_CELL_H_ */

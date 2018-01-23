@@ -122,3 +122,26 @@ void cns_cell_array_run(cns_cell_array *cell_array)
 	for (i = 0; i < cell_array->size; i++)
 		cns_cell_run(&cell_array->cells[i]);
 }
+
+void cns_cell_array_set_data(cns_cell_array *array, size_t index,
+			void *input, void *output, void *weight)
+{
+	cns_cell_set_data(&array->cells[index], input, output, weight);
+}
+
+void cns_cell_array_set_width(cns_cell_array *array, size_t index,
+			uint8_t input_width, uint8_t output_width, uint8_t weight_width)
+{
+	cns_cell_set_width(&array->cells[index], input_width, output_width, weight_width);
+}
+
+void cns_cell_array_set_dtype(cns_cell_array *array, size_t index,
+			int input_dtype, int output_dtype, int weight_dtype)
+{
+	cns_cell_set_dtype(&array->cells[index], input_dtype, output_dtype, weight_dtype);
+}
+
+void cns_cell_array_set_op(cns_cell_array *array, size_t index, cns_cell_op op)
+{
+	cns_cell_set_op(&array->cells[index], op);
+}
