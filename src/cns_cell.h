@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <limits.h>
 
-#define CNS_MAX_CELLS LONG_MAX;
+#define CNS_MAX_CELLS LONG_MAX
 
 typedef struct cns_cell_data {
 	uint8_t        input_width;

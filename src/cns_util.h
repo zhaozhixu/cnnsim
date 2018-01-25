@@ -20,6 +20,8 @@ typedef enum cns_dtype {
 	CNS_UINT8
 } cns_dtype;
 
+typedef int (*cns_cmp_func)(void *, void *);
+
 #define cns_free free
 
 void *cns_alloc(size_t size);

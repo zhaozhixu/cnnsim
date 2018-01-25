@@ -1,5 +1,5 @@
-#include "cns_util.h"
 #include "cns_list.h"
+#include "cns_util.h"
 
 /* return the list with appended element (a new list if list == NULL) */
 cns_list *cns_list_append(cns_list *list, void *data)
@@ -45,7 +45,9 @@ cns_list *cns_list_nth(cns_list *list, int n)
 
 void *cns_list_nth_data(cns_list *list, int n)
 {
-	return cns_list_nth(list, n)->data;
+	cns_list *l;
+	l = cns_list_nth(list, n);
+	return l ? l->data : NULL;
 }
 
 cns_list *cns_list_remove_nth(cns_list *list, int n)
@@ -65,12 +67,19 @@ cns_list *cns_list_remove_nth(cns_list *list, int n)
 	return list;
 }
 
-/* return the list with inserted element, or NULL if list == NULL */
+/*
+ * Return the list with inserted element, or NULL if list == NULL.
+ * If the position n is negative or larger or equal than the length
+ * of the list, the new element is added on to the end of the list.
+ */
 cns_list *cns_list_insert_nth(cns_list *list, void *data, int n)
 {
 	cns_list **lp;
 	cns_list *tmp;
 	int i;
+
+	if (n < 0)
+		return cns_list_append(list, data);
 
 	for (i = 0, lp = &list; *lp; lp = &(*lp)->next, i++) {
 		if (i == n) {
@@ -78,7 +87,54 @@ cns_list *cns_list_insert_nth(cns_list *list, void *data, int n)
 			*lp = (cns_list *)cns_alloc(sizeof(cns_list));
 			(*lp)->data = data;
 			(*lp)->next = tmp;
+			break;
 		}
 	}
+
+	if (!*lp)
+		*lp = cns_list_append(NULL, data);
+
 	return list;
+}
+
+cns_list *cns_list_find(cns_list *list, void *data)
+{
+	cns_list *l;
+
+	for (l = list; l; l = l->next)
+		if (data == l->data)
+			return l;
+	return NULL;
+}
+
+cns_list *cns_list_find_custom(cns_list *list, void *data, cns_cmp_func cmp)
+{
+	cns_list *l;
+
+	for (l = list; l; l = l->next)
+		if (cmp(data, l->data) == 0)
+			return l;
+	return NULL;
+}
+
+int cns_list_position(cns_list *list, cns_list *llink)
+{
+	cns_list *l;
+	int i;
+
+	for (i = 0, l = list; l; l = l->next, i++)
+		if (l == llink)
+			return i;
+	return -1;
+}
+
+int cns_list_index(cns_list *list, void *data)
+{
+	cns_list *l;
+	int i;
+
+	for (i = 0, l = list; l; l = l->next, i++)
+		if (l->data == data)
+			return i;
+	return -1;
 }

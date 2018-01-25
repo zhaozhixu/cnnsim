@@ -6,5 +6,7 @@
 Suite *make_cell_suite(void);
 Suite *make_tensor_suite(void);
 Suite *make_list_suite(void);
+Suite *make_queue_suite(void);
+Suite *make_graph_suite(void);
 
 #endif	/* _TEST_CNNSIM_H_ */

@@ -75,11 +75,16 @@ INCPATHS    =-I"$(CUDA_INSTALL_DIR)/include" -I"/usr/local/include"
 LIBPATHS    =-L"$(CUDA_INSTALL_DIR)/targets/$(TRIPLE)/$(CUDA_LIBDIR)" -L"/usr/local/lib" -L"/usr/local/cuda/lib64" -L"$(CUDA_INSTALL_DIR)/$(CUDA_LIBDIR)"
 LIBS = $(LIBPATHS) -lcudart -lcudart_static -lnvinfer `pkg-config --libs opencv check`
 CFLAGS += $(INCPATHS) `pkg-config --cflags opencv check`
-CUFLAGS += $(INCPATHS) `pkg-config --cflags opencv check
+CUFLAGS += $(INCPATHS) `pkg-config --cflags opencv check`
+# LIBS = $(LIBPATHS) -lcudart -lcudart_static -lnvinfer `pkg-config --libs opencv` -lcheck -pthread -lrt -lm -lsubunit
+# CFLAGS += $(INCPATHS) `pkg-config --cflags opencv`
+# CUFLAGS += $(INCPATHS) `pkg-config --cflags opencv`
+
 LDFLAGS += $(LIBS)
 
 .PHONY: all
 all: $(OUTDIR)/$(TARGET_TEST)
+	$(ECHO) Running tests...
 	$(AT)$(OUTDIR)/$(TARGET_TEST)
 
 $(OUTDIR)/$(TARGET_TEST): $(OBJS) $(CUOBJS)
