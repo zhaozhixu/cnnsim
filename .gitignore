@@ -11,7 +11,7 @@
 *.org
 *.xml
 cnnsim
-cnnsim_test
+test_cnnsim
 GPATH
 GRTAGS
 GSYMS
