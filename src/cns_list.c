@@ -50,6 +50,22 @@ void *cns_list_nth_data(cns_list *list, int n)
 	return l ? l->data : NULL;
 }
 
+cns_list *cns_list_remove(cns_list *list, void *data)
+{
+	cns_list **lp;
+	cns_list *tmp;
+
+	for (lp = &list; *lp; lp = &(*lp)->next) {
+		if ((*lp)->data == data) {
+			tmp = *lp;
+			*lp = tmp->next;
+			cns_free(tmp);
+			break;
+		}
+	}
+	return list;
+}
+
 cns_list *cns_list_remove_nth(cns_list *list, int n)
 {
 	cns_list **lp;

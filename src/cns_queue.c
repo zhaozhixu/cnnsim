@@ -1,7 +1,19 @@
 #include "cns_queue.h"
 #include "cns_util.h"
 
-/* return the queue with insert element (a new queue if queue == NULL) */
+cns_queue *cns_queue_create()
+{
+	cns_queue *q;
+
+	q = (cns_queue *)cns_alloc(sizeof(cns_queue));
+	q->head = NULL;
+	q->tail = NULL;
+	q->size = 0;
+
+	return q;
+}
+
+/* return the queue with a new element (a new queue if queue == NULL) */
 cns_queue *cns_queue_enqueue(cns_queue *queue, void *data)
 {
 	cns_queue *q;
@@ -10,13 +22,13 @@ cns_queue *cns_queue_enqueue(cns_queue *queue, void *data)
 		q = (cns_queue *)cns_alloc(sizeof(cns_queue));
 		q->head = cns_list_append(NULL, data);
 		q->tail = q->head;
-		q->length = 1;
+		q->size = 1;
 		return q;
 	}
 
 	q = queue;
 	q->tail = cns_list_append(q->tail, data);
-	q->length++;
+	q->size++;
 	if (!q->head)
 		q->head = q->tail;
 	else
@@ -33,8 +45,8 @@ void *cns_queue_dequeue(cns_queue *queue)
 	queue->head = cns_list_remove_nth(queue->head, 0);
 	if (queue->head == NULL)
 		queue->tail = NULL;
-	if (queue->length > 0)
-		queue->length--;
+	if (queue->size > 0)
+		queue->size--;
 
 	return data;
 }

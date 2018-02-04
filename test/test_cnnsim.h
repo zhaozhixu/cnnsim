@@ -1,6 +1,7 @@
 #ifndef _TEST_CNNSIM_H_
 #define _TEST_CNNSIM_H_
 
+#include <stdio.h>
 #include <check.h>
 
 Suite *make_cell_suite(void);

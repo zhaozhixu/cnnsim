@@ -36,6 +36,31 @@ START_TEST(test_list_append_nth)
 }
 END_TEST
 
+START_TEST(test_list_remove)
+{
+	int num, i;
+
+	list = cns_list_remove(list, &data[0]);
+	ck_assert_int_eq(*(int *)cns_list_nth_data(list, 0), 1);
+
+	list = cns_list_insert_nth(list, &data[0], 0);
+	list = cns_list_remove(list, &data[4]);
+	ck_assert_int_eq(*(int *)cns_list_nth_data(list, 3), 3);
+	ck_assert_ptr_eq(cns_list_nth_data(list, 4), NULL);
+
+	list = cns_list_insert_nth(list, &data[4], 4);
+	num = -1;
+	list = cns_list_remove(list, &num);
+	for (i = 0; i < data_len; i++)
+		ck_assert_int_eq(*(int *)cns_list_nth_data(list, i), data[i]);
+
+	num = 5;
+	list = cns_list_remove(list, &num);
+	for (i = 0; i < data_len; i++)
+		ck_assert_int_eq(*(int *)cns_list_nth_data(list, i), data[i]);
+}
+END_TEST
+
 START_TEST(test_list_remove_insert_nth)
 {
 	int i;
@@ -156,6 +181,7 @@ Suite *make_list_suite(void)
 	tc_list = tcase_create("tc_list");
 	tcase_add_checked_fixture(tc_list, setup, teardown);
 	tcase_add_test(tc_list, test_list_append_nth);
+	tcase_add_test(tc_list, test_list_remove);
 	tcase_add_test(tc_list, test_list_remove_insert_nth);
 	tcase_add_test(tc_list, test_list_find);
 	tcase_add_test(tc_list, test_list_find_custom);
