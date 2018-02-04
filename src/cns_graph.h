@@ -30,6 +30,10 @@ extern "C" {
 	cns_graph_node *cns_graph_find(cns_graph *graph, void *data);
 	void cns_graph_link(cns_graph *graph, void *data1, void *data2);
 	void cns_graph_unlink(cns_graph *graph, void *data1, void *data2);
+	cns_graph *cns_graph_copy(cns_graph *graph);
+	int cns_graph_num_outlier(cns_graph *graph);
+	void cns_graph_free_topsortlist(cns_list *list);
+	int cns_graph_topsort(cns_graph *graph, cns_list **res);
 
 #ifdef __cplusplus
 }
