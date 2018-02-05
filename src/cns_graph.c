@@ -24,7 +24,7 @@ cns_graph_node *cns_graph_node_create(void *data)
 	return gn;
 }
 
-cns_graph *cns_graph_create()
+cns_graph *cns_graph_create(void)
 {
 	cns_graph *g;
 
@@ -198,11 +198,18 @@ int cns_graph_topsort(cns_graph *graph, cns_list **res)
 		res_num++;
 	}
 
+#ifdef DEBUG
+	printf("res_num = %d\n", res_num);
+	printf("node_count = %d\n", node_count);
+	printf("size = %d\n", graph->size);
+	printf("outlier = %d\n", cns_graph_num_outlier(graph));
+#endif	/* DEBUG */
+
 	cns_queue_free(queue);
 	cns_graph_free(g);
 	*res = res_list;
 
 	if (node_count != graph->size - cns_graph_num_outlier(graph))
-		return -1;
+		return -1;	/* graph has a cycle */
 	return res_num;
 }

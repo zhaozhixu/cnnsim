@@ -31,8 +31,8 @@ void cns_cell_set_data(cns_cell *cell, void *input, void *output, void *weight)
 	cell->data.weight = weight;
 }
 
-void cns_cell_set_dtype(cns_cell *cell, int input_dtype,
-			int output_dtype, int weight_dtype)
+void cns_cell_set_dtype(cns_cell *cell, cns_dtype input_dtype,
+			cns_dtype output_dtype, cns_dtype weight_dtype)
 {
 	assert(cell);
 	cell->data.input_dtype = input_dtype;
@@ -55,10 +55,10 @@ void cns_cell_set_op(cns_cell *cell, cns_cell_op op)
 	cell->op = op;
 }
 
-void cns_cell_set_dep(cns_cell *cell, ssize_t *dep)
+void cns_cell_add_dep(cns_cell *cell, ssize_t dep)
 {
 	assert(cell);
-	cell->dep = dep;
+	cell->deps = cns_list_append(cell->deps, (void *)dep);
 }
 
 void cns_cell_fprint_data(FILE *fp, cns_cell *cell)
@@ -102,8 +102,11 @@ cns_cell_array *cns_cell_array_create(size_t size)
 	cell_array->cells = cells;
 	cell_array->size = size;
 
-	for (i = 0; i < size; i++)
+	for (i = 0; i < size; i++) {
 		cells[i].index = i;
+		cells[i].deps = NULL;
+		cells[i].op = NULL;
+	}
 
 	return cell_array;
 }
@@ -144,4 +147,27 @@ void cns_cell_array_set_dtype(cns_cell_array *array, size_t index,
 void cns_cell_array_set_op(cns_cell_array *array, size_t index, cns_cell_op op)
 {
 	cns_cell_set_op(&array->cells[index], op);
+}
+
+void cns_cell_array_add_dep(cns_cell_array *array, size_t index, ssize_t dep)
+{
+	cns_cell_add_dep(&array->cells[index], dep);
+}
+
+cns_graph *cns_cell_array_dep_graph(cns_cell_array *array)
+{
+	cns_graph *g;
+	cns_list *l;
+	size_t i;
+
+	g = cns_graph_create();
+	cns_graph_add(g, (void *)-1);
+	for (i = 0; i < array->size; i++)
+		cns_graph_add(g, (void *)i);
+	for (i = 0; i < array->size; i++) {
+		for (l = array->cells[i].deps; l; l = l->next)
+			cns_graph_link(g, (void *)l->data, (void *)i);
+	}
+
+	return g;
 }

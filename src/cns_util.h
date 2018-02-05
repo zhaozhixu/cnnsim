@@ -4,12 +4,14 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-typedef enum cns_bool_t {
+typedef enum cns_bool_t cns_bool_t;
+enum cns_bool_t {
 	CNS_FLASE = 0,
 	CNS_TRUE = 1
-} cns_bool_t;
+};
 
-typedef enum cns_dtype {
+typedef enum cns_dtype cns_dtype;
+enum cns_dtype {
 	CNS_BOOL,
 	CNS_FLOAT,
 	CNS_INT32,
@@ -18,7 +20,7 @@ typedef enum cns_dtype {
 	CNS_UINT32,
 	CNS_UINT16,
 	CNS_UINT8
-} cns_dtype;
+};
 
 typedef int (*cns_cmp_func)(void *, void *);
 

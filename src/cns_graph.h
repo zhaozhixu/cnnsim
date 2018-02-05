@@ -23,7 +23,7 @@ extern "C" {
 #endif
 
 	cns_graph_node *cns_graph_node_create(void *data);
-	cns_graph *cns_graph_create();
+	cns_graph *cns_graph_create(void);
 	void cns_graph_node_free(cns_graph_node *node);
 	void cns_graph_free(cns_graph *graph);
 	cns_graph_node *cns_graph_add(cns_graph *graph, void *data);
