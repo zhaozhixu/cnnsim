@@ -162,11 +162,11 @@ int cns_graph_topsort(cns_graph *graph, cns_list **res)
 	cns_graph_node *node;
 	void *data1, *data2;
 	int node_count;
-	int res_num;
+	int res_size;
 	int queue_size;
 
 	node_count = 0;
-	res_num = 0;
+	res_size = 0;
 	res_list = NULL;
 	sub_list = NULL;
 	queue = cns_queue_create();
@@ -195,11 +195,11 @@ int cns_graph_topsort(cns_graph *graph, cns_list **res)
 			}
 		}
 		res_list = cns_list_append(res_list, sub_list);
-		res_num++;
+		res_size++;
 	}
 
 #ifdef DEBUG
-	printf("res_num = %d\n", res_num);
+	printf("res_size = %d\n", res_size);
 	printf("node_count = %d\n", node_count);
 	printf("size = %d\n", graph->size);
 	printf("outlier = %d\n", cns_graph_num_outlier(graph));
@@ -211,5 +211,5 @@ int cns_graph_topsort(cns_graph *graph, cns_list **res)
 
 	if (node_count != graph->size - cns_graph_num_outlier(graph))
 		return -1;	/* graph has a cycle */
-	return res_num;
+	return res_size;
 }

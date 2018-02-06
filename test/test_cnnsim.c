@@ -4,13 +4,13 @@
 
 #include "test_cnnsim.h"
 
-int main(int argc, char *argv[])
+int main(int argc, char **argv)
 {
 	int number_failed;
 	int status;
 	SRunner *sr;
 
-	sr = srunner_create(make_cell_suite());
+	sr = srunner_create(make_block_suite());
 	srunner_add_suite(sr, make_tensor_suite());
 	srunner_add_suite(sr, make_list_suite());
 	srunner_add_suite(sr, make_queue_suite());

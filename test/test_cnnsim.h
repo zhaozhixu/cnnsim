@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <check.h>
 
-Suite *make_cell_suite(void);
+Suite *make_block_suite(void);
 Suite *make_tensor_suite(void);
 Suite *make_list_suite(void);
 Suite *make_queue_suite(void);

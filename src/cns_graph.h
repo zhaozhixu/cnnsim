@@ -6,16 +6,16 @@
 
 typedef struct cns_graph_node cns_graph_node;
 struct cns_graph_node {
-	size_t    indegree;
-	size_t    outdegree;
-	void     *data;
-	cns_list *adj_nodes;
+	size_t       indegree;
+	size_t       outdegree;
+	void        *data;
+	cns_list    *adj_nodes;	/* data type cns_graph_node */
 };
 
 typedef struct cns_graph cns_graph;
 struct cns_graph {
 	size_t       size;
-	cns_list    *nodes;
+	cns_list    *nodes;	/* data type cns_graph_node */
 };
 
 #ifdef __cplusplus
