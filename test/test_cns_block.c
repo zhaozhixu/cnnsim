@@ -21,10 +21,10 @@ static void setup(void)
 		input[i] = -i;
 		output[i] = i;
 		weight[i] = 1;
-		cns_block_set_data(block, i, &input[i], &output[i], &weight[i]);
+		cns_block_set_data(block, i, &input[i], &weight[i], &output[i]);
 		cns_block_set_dtype(block, i, CNS_INT8);
 		cns_block_set_width(block, i, 8);
-		cns_block_set_op(block, i, &cns_cell_mul_int8);
+		cns_block_set_op(block, i, &cns_cell_op_mul_int8);
 	}
 }
 
@@ -85,6 +85,78 @@ START_TEST(test_block_dep_graph)
 	}
 	cns_graph_free_topsortlist(res);
 	cns_graph_free(dep_g);
+}
+END_TEST
+
+/*
+ * This is a test block for 3x3 and 1x1 convolution.
+ */
+START_TEST(test_block_conv)
+{
+	cns_block *block;
+	void *buf;
+	void *buf_mi;
+	void *buf_mw;
+	void *buf_mo;
+	void *buf_ao;
+	void *buf_ro;
+	void *buf_eao;
+	void *buf_eaw;
+	void *buf_ero;
+	size_t block_size;
+	size_t nbuf;
+	size_t i;
+
+	/* 9 multipliers, 9 adders, 9 relus, 1 extra adder, 1 extra relu */
+	block_size = 9 + 9 + 9 + 1 + 1;
+	block = cns_block_create(block_size);
+
+	/* 9 multiplier inputs, 9 multiplier weights,
+	   9 multiplier outputs (adder inputs),
+	   9 adder outputs (relu inputs), 9 relu outputs,
+	   1 extra adder weight,
+	   1 extra adder output (extra relu input),
+	   1 extra relu output */
+	nbuf = 9 + 9 + 9 + 9 + 9 + 1 + 1 + 1;
+	buf = cns_block_alloc_buf(block, nbuf, CNS_INT8);
+	buf_mi = buf;
+	buf_mw = buf_mi + 9;
+	buf_mo = buf_mw + 9;
+	buf_ao = buf_mo + 9;
+	buf_ro = buf_ao + 9;
+	buf_eaw = buf_ro + 9;
+	buf_eao = buf_eaw + 1;
+	buf_ero = buf_eao + 1;
+
+	*(int8_t *)buf_eaw = 9;		/* for cns_cell_op_add_many_int8 */
+	for (i = 0; i < block->size; i++) {
+		cns_block_set_dtype(block, i, CNS_INT8);
+		if (i >= 0 && i < 9) {
+			cns_block_set_data(block, i,
+					buf_mi+i, buf_mw+i, buf_mo+i);
+			cns_block_set_op(block, i, cns_cell_op_mul_int8);
+		}
+		if (i >= 9 && i < 18) {
+			cns_block_set_data(block, i,
+					buf_mo+i-9, buf_ao+i-9, buf_ao+i-9);
+			cns_block_set_op(block, i, cns_cell_op_add_int8);
+		}
+		if (i >= 18 && i < 27) {
+			cns_block_set_data(block, i,
+					buf_ao+i-18, NULL, buf_ro+i-18);
+			cns_block_set_op(block, i, cns_cell_op_relu_int8);
+		}
+		if (i >= 27 && i < 28) {
+			cns_block_set_data(block, i, buf_ao, buf_eaw, buf_eao);
+			cns_block_set_op(block, i, cns_cell_op_add_many_int8);
+		}
+		if (i >= 28 && i < 29) {
+			cns_block_set_data(block, i, buf_eao, NULL, buf_ero);
+			cns_block_set_op(block, i, cns_cell_op_relu_int8);
+		}
+	}
+
+	cns_block_free(block);
 }
 END_TEST
 

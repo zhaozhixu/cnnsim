@@ -16,8 +16,8 @@ struct cns_cell_data {
 	uint8_t         width;
 	cns_dtype       dtype;
 	void           *input;
-	void           *output;
 	void           *weight;
+	void           *output;
 };
 
 typedef void (* cns_cell_op) (cns_cell_data *data);
@@ -43,7 +43,8 @@ extern "C" {
 
 	void cns_cell_run(cns_cell *cell);
 	void cns_cell_set_cell_data(cns_cell *cell, cns_cell_data *cell_data);
-	void cns_cell_set_data(cns_cell *cell, void *input, void *output, void *weight);
+	void cns_cell_set_data(cns_cell *cell,
+			void *input, void *weight, void *output);
 	void cns_cell_set_width(cns_cell *cell, uint8_t width);
 	void cns_cell_set_dtype(cns_cell *cell, cns_dtype dtype);
 	void cns_cell_set_op(cns_cell *cell, cns_cell_op op);

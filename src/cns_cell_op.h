@@ -3,7 +3,17 @@
 
 #include "cns_cell.h"
 
-void cns_cell_mul_int8(cns_cell_data *data);
-void cns_cell_add_int8(cns_cell_data *data);
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+	void cns_cell_op_mul_int8(cns_cell_data *data);
+	void cns_cell_op_add_int8(cns_cell_data *data);
+	void cns_cell_op_relu_int8(cns_cell_data *data);
+	void cns_cell_op_add_many_int8(cns_cell_data *data);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif	/* _CNS_CELL_OP_H_ */

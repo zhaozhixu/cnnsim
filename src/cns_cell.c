@@ -19,7 +19,7 @@ void cns_cell_set_cell_data(cns_cell *cell, cns_cell_data *cell_data)
 	cell->data.dtype = cell_data->dtype;
 }
 
-void cns_cell_set_data(cns_cell *cell, void *input, void *output, void *weight)
+void cns_cell_set_data(cns_cell *cell, void *input, void *weight, void *output)
 {
 	assert(cell && input && output && weight);
 	cell->data.input = input;

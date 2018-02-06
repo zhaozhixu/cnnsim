@@ -22,10 +22,11 @@ extern "C" {
 	void cns_block_free(cns_block *block);
 	void cns_block_run(cns_block *block);
 	void cns_block_set_data(cns_block *block, size_t index,
-				void *input, void *output, void *weight);
+				void *input, void *weight, void *output);
 	void cns_block_set_width(cns_block *block, size_t index, uint8_t width);
 	void cns_block_set_dtype(cns_block *block, size_t index, int dtype);
 	void cns_block_set_op(cns_block *block, size_t index, cns_cell_op op);
+	void *cns_block_alloc_buf(cns_block *block, size_t n, cns_dtype dtype);
 	void cns_block_add_dep(cns_block *block, size_t index, ssize_t dep);
 	cns_graph *cns_block_dep_graph(cns_block *block);
 

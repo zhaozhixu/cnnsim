@@ -26,10 +26,19 @@ typedef int (*cns_cmp_func)(void *, void *);
 
 #define cns_free free
 
-void *cns_alloc(size_t size);
-char *cns_path_alloc(size_t *sizep);
-void *cns_clone(const void *src, size_t size);
-void *cns_repeat(void *data, size_t size, int times);
-int cns_compute_length(uint32_t ndim, uint32_t *dims);
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+	void *cns_alloc(size_t size);
+	char *cns_path_alloc(size_t *sizep);
+	void *cns_clone(const void *src, size_t size);
+	void *cns_repeat(void *data, size_t size, int times);
+	int cns_compute_length(uint32_t ndim, uint32_t *dims);
+	size_t cns_size_of(cns_dtype dtype);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif	/* _CNS_UTIL_H_ */

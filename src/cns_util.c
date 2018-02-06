@@ -102,3 +102,39 @@ int cns_compute_length(uint32_t ndim, uint32_t *dims)
      fprintf(stderr, "Warning: null dims in computeLength\n");
      return 0;
 }
+
+size_t cns_size_of(cns_dtype dtype)
+{
+     size_t size;
+
+     switch(dtype) {
+     case CNS_BOOL:
+          size = sizeof(cns_bool_t);
+          break;
+     case CNS_FLOAT:
+          size = sizeof(float);
+          break;
+     case CNS_INT32:
+          size = sizeof(int32_t);
+          break;
+     case CNS_INT16:
+          size = sizeof(int16_t);
+          break;
+     case CNS_INT8:
+          size = sizeof(int8_t);
+          break;
+     case CNS_UINT32:
+          size = sizeof(uint32_t);
+          break;
+     case CNS_UINT16:
+          size = sizeof(uint16_t);
+          break;
+     case CNS_UINT8:
+          size = sizeof(uint8_t);
+          break;
+     default:
+          fprintf(stderr, "ERROR: cns_size_of: unknown cns_dtype %d\n", dtype);
+          exit(EXIT_FAILURE);
+     }
+     return size;
+}
