@@ -123,10 +123,36 @@ cns_graph *cns_block_dep_graph(cns_block *block)
 
 void cns_block_link(cns_block *block, size_t idx1, int itf1, size_t idx2, int itf2)
 {
+	if (block->cbuf_mark >= block->cbuf_size) {
+		fprintf(stderr,
+			"ERROR: cns_block_link: chore buffer overflow\n");
+		exit(EXIT_FAILURE);
+	}
+
+	switch (itf1) {
+	case CNS_INPUT:
+		block->cells[idx1].data.input = &block->cbuf[block->cbuf_mark++];
+	}
 }
 
 void cns_block_link_io(cns_block *block, size_t idx, int itf)
 {
+	if (block->ibuf_mark >= block->ibuf_size) {
+		fprintf(stderr,
+			"ERROR: cns_block_link_io: input buffer overflow\n");
+		exit(EXIT_FAILURE);
+	}
+	if (block->obuf_mark >= block->obuf_size) {
+		fprintf(stderr,
+			"ERROR: cns_block_link_io: output buffer overflow\n");
+		exit(EXIT_FAILURE);
+	}
+	if (block->wbuf_mark >= block->wbuf_size) {
+		fprintf(stderr,
+			"ERROR: cns_block_link_io: weight buffer overflow\n");
+		exit(EXIT_FAILURE);
+	}
+
 	switch (itf) {
 	case CNS_INPUT:
 		block->cells[idx].data.input = &block->ibuf[block->ibuf_mark++];
@@ -138,7 +164,8 @@ void cns_block_link_io(cns_block *block, size_t idx, int itf)
 		block->cells[idx].data.weight = &block->wbuf[block->wbuf_mark++];
 		break;
 	default:
-		fprintf(stderr, "ERROR: cns_block_link_io: unknown cns_interface_type %d\n", itf);
+		fprintf(stderr,
+			"ERROR: cns_block_link_io: unknown cns_interface_type %d\n", itf);
 		exit(EXIT_FAILURE);
 	}
 }

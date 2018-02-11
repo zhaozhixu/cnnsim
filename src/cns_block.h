@@ -19,9 +19,9 @@ struct cns_block {
 	size_t          obuf_size;
 	size_t          cbuf_size;
 	size_t          ibuf_mark;
-	size_t          ibuf_mark;
-	size_t          ibuf_mark;
-	size_t          ibuf_mark;
+	size_t          obuf_mark;
+	size_t          wbuf_mark;
+	size_t          cbuf_mark;
 	size_t          size;
 	void           *ibuf;	/* input buffer */
 	void           *obuf;	/* output buffer */
@@ -45,6 +45,7 @@ extern "C" {
 	/* void *cns_block_alloc_buf(cns_block *block, size_t n, cns_dtype dtype); */
 	void cns_block_add_dep(cns_block *block, size_t index, ssize_t dep);
 	cns_graph *cns_block_dep_graph(cns_block *block);
+	void cns_block_link_io(cns_block *block, size_t idx, int itf);
 
 #ifdef __cplusplus
 }
