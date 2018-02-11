@@ -13,9 +13,15 @@ cns_block *cns_block_create(size_t size)
 	block = (cns_block *)cns_alloc(sizeof(cns_block));
 	block->cells = cells;
 	block->size = size;
-	block->buf = NULL;
+	block->ibuf = NULL;
+	block->obuf = NULL;
+	block->wbuf = NULL;
+	block->cbuf = NULL;
 	block->buf_dtype = CNS_INT8;
-	block->buf_size = 0;
+	block->ibuf_size = 0;
+	block->obuf_size = 0;
+	block->wbuf_size = 0;
+	block->cbuf_size = 0;
 
 	for (i = 0; i < size; i++) {
 		cells[i].data.width = 8;
@@ -35,7 +41,10 @@ void cns_block_free(cns_block *block)
 {
 	assert(block);
 	cns_free(block->cells);
-	cns_free(block->buf);
+	cns_free(block->ibuf);
+	cns_free(block->obuf);
+	cns_free(block->wbuf);
+	cns_free(block->cbuf);
 	cns_free(block);
 }
 
@@ -68,17 +77,17 @@ void cns_block_set_op(cns_block *block, size_t index, cns_cell_op op)
 	cns_cell_set_op(&block->cells[index], op);
 }
 
-void *cns_block_alloc_buf(cns_block *block, size_t n, cns_dtype dtype)
-{
-	size_t size;
+/* void *cns_block_alloc_buf(cns_block *block, size_t n, cns_dtype dtype) */
+/* { */
+/* 	size_t size; */
 
-	size = cns_size_of(dtype) * n;
-	block->buf = cns_alloc(size);
-	memset(block->buf, 0, size);
-	block->buf_size = size;
-	block->buf_dtype = dtype;
-	return block->buf;
-}
+/* 	size = cns_size_of(dtype) * n; */
+/* 	block->buf = cns_alloc(size); */
+/* 	memset(block->buf, 0, size); */
+/* 	block->buf_size = size; */
+/* 	block->buf_dtype = dtype; */
+/* 	return block->buf; */
+/* } */
 
 void cns_block_add_dep(cns_block *block, size_t index, ssize_t dep)
 {
@@ -101,4 +110,12 @@ cns_graph *cns_block_dep_graph(cns_block *block)
 	}
 
 	return g;
+}
+
+void cns_block_link(cns_block *block, size_t idx1, int itf1, size_t idx2, int itf2)
+{
+}
+
+void cns_block_link_io(cns_block *block, size_t idx, int itf, int itf_io)
+{
 }
