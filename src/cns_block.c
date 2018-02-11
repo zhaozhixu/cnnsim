@@ -2,30 +2,39 @@
 #include <string.h>
 #include "cns_block.h"
 
-cns_block *cns_block_create(size_t size)
+cns_block *cns_block_create(size_t size, cns_dtype dtype, uint8_t width)
 {
 	assert(size > 0 && size <= CNS_MAX_CELLS);
 	cns_cell *cells;
 	cns_block *block;
-	size_t i;
+	size_t i, dsize;
 
-	cells = (cns_cell *)cns_alloc(sizeof(cns_cell) * size);
 	block = (cns_block *)cns_alloc(sizeof(cns_block));
+	dsize = cns_size_of(dtype) * size;
+	block->buf_dtype = dtype;
+	block->ibuf = cns_alloc(dsize);
+	block->obuf = cns_alloc(dsize);
+	block->wbuf = cns_alloc(dsize);
+	block->cbuf = cns_alloc(dsize);
+	memset(block->ibuf, 0, dsize);
+	memset(block->obuf, 0, dsize);
+	memset(block->wbuf, 0, dsize);
+	memset(block->cbuf, 0, dsize);
+	block->ibuf_size = dsize;
+	block->obuf_size = dsize;
+	block->wbuf_size = dsize;
+	block->cbuf_size = dsize;
+	block->ibuf_mark = 0;
+	block->obuf_mark = 0;
+	block->wbuf_mark = 0;
+	block->cbuf_mark = 0;
+	cells = (cns_cell *)cns_alloc(sizeof(cns_cell) * size);
 	block->cells = cells;
 	block->size = size;
-	block->ibuf = NULL;
-	block->obuf = NULL;
-	block->wbuf = NULL;
-	block->cbuf = NULL;
-	block->buf_dtype = CNS_INT8;
-	block->ibuf_size = 0;
-	block->obuf_size = 0;
-	block->wbuf_size = 0;
-	block->cbuf_size = 0;
 
 	for (i = 0; i < size; i++) {
-		cells[i].data.width = 8;
-		cells[i].data.dtype = CNS_INT8;
+		cells[i].data.width = width;
+		cells[i].data.dtype = dtype;
 		cells[i].data.input = NULL;
 		cells[i].data.weight = NULL;
 		cells[i].data.output = NULL;
@@ -116,6 +125,20 @@ void cns_block_link(cns_block *block, size_t idx1, int itf1, size_t idx2, int it
 {
 }
 
-void cns_block_link_io(cns_block *block, size_t idx, int itf, int itf_io)
+void cns_block_link_io(cns_block *block, size_t idx, int itf)
 {
+	switch (itf) {
+	case CNS_INPUT:
+		block->cells[idx].data.input = &block->ibuf[block->ibuf_mark++];
+		break;
+	case CNS_OUTPUT:
+		block->cells[idx].data.output = &block->obuf[block->obuf_mark++];
+		break;
+	case CNS_WEIGHT:
+		block->cells[idx].data.weight = &block->wbuf[block->wbuf_mark++];
+		break;
+	default:
+		fprintf(stderr, "ERROR: cns_block_link_io: unknown cns_interface_type %d\n", itf);
+		exit(EXIT_FAILURE);
+	}
 }

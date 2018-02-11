@@ -18,6 +18,10 @@ struct cns_block {
 	size_t          wbuf_size;
 	size_t          obuf_size;
 	size_t          cbuf_size;
+	size_t          ibuf_mark;
+	size_t          ibuf_mark;
+	size_t          ibuf_mark;
+	size_t          ibuf_mark;
 	size_t          size;
 	void           *ibuf;	/* input buffer */
 	void           *obuf;	/* output buffer */
