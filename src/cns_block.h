@@ -4,6 +4,7 @@
 #include "cns_util.h"
 #include "cns_cell.h"
 #include "cns_graph.h"
+#include "cns_list.h"
 
 enum cns_interface_type {
 	CNS_INPUT,
@@ -27,6 +28,10 @@ struct cns_block {
 	void           *obuf;	/* output buffer */
 	void           *wbuf;	/* weight buffer */
 	void           *cbuf;	/* chore buffer */
+
+	/* Interfaces attached to each chore buffer element.
+	   This is an *array* of cns_list*. */
+	cns_list      **cbuf_itfs;
 	cns_cell       *cells;
 };
 
@@ -42,10 +47,9 @@ extern "C" {
 	void cns_block_set_width(cns_block *block, size_t index, uint8_t width);
 	void cns_block_set_dtype(cns_block *block, size_t index, int dtype);
 	void cns_block_set_op(cns_block *block, size_t index, cns_cell_op op);
-	/* void *cns_block_alloc_buf(cns_block *block, size_t n, cns_dtype dtype); */
 	void cns_block_add_dep(cns_block *block, size_t index, ssize_t dep);
 	cns_graph *cns_block_dep_graph(cns_block *block);
-	void cns_block_link_io(cns_block *block, size_t idx, int itf);
+	void cns_block_link_io(cns_block *block, size_t idx, int itft);
 
 #ifdef __cplusplus
 }

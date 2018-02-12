@@ -24,11 +24,13 @@ typedef void (* cns_cell_op) (cns_cell_data *data);
 
 typedef struct cns_cell cns_cell;
 struct cns_cell {
+	/* The data of a cell. For the convenience of implementation,
+	   this is not implemented as a pointer. */
 	cns_cell_data   data;
-	cns_cell_op     op;
+	cns_cell_op     op;	/* operation on the data, function pointer */
 	size_t          index;	/* index in a cell array */
 
-	/* Below is the indexes of cells in the same cell array
+	/* They are the indexes of cells in the same cell array
 	   on which this cell depends. It starts running after
 	   those cells all stop running. -1 is a special index.
 	   Every cell running in the first place should depend on

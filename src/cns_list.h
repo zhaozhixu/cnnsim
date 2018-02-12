@@ -18,6 +18,7 @@ extern "C" {
 
 	cns_list *cns_list_append(cns_list *list, void *data);
 	void cns_list_free(cns_list *list);
+	void cns_list_free_deep(cns_list *list);
 	cns_list *cns_list_nth(cns_list *list, int n);
 	void *cns_list_nth_data(cns_list *list, int n);
 	cns_list *cns_list_remove(cns_list *list, void *data);

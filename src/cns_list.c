@@ -31,6 +31,18 @@ void cns_list_free(cns_list *list)
 	}
 }
 
+void cns_list_free_deep(cns_list *list)
+{
+	cns_list *tmp, *l;
+
+	for (l = list; l;) {
+		tmp = l->next;
+		cns_free(l->data);
+		cns_free(l);
+		l = tmp;
+	}
+}
+
 /* return the nth element in list, or NULL if the position is off the end of list */
 cns_list *cns_list_nth(cns_list *list, int n)
 {
