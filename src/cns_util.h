@@ -36,6 +36,8 @@ extern "C" {
 	void *cns_repeat(void *data, size_t size, int times);
 	int cns_compute_length(uint32_t ndim, uint32_t *dims);
 	size_t cns_size_of(cns_dtype dtype);
+	int cns_pointer_sub(void *p1, void *p2, cns_dtype dtype);
+	void *cns_pointer_add(void *p, int offset, cns_dtype dtype);
 
 #ifdef __cplusplus
 }

@@ -49,6 +49,8 @@ extern "C" {
 	void cns_block_set_op(cns_block *block, size_t index, cns_cell_op op);
 	void cns_block_add_dep(cns_block *block, size_t index, ssize_t dep);
 	cns_graph *cns_block_dep_graph(cns_block *block);
+	void cns_block_link(cns_block *block, size_t idx1, int itft1,
+			size_t idx2, int itft2);
 	void cns_block_link_io(cns_block *block, size_t idx, int itft);
 
 #ifdef __cplusplus

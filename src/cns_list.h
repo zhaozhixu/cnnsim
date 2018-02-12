@@ -29,6 +29,7 @@ extern "C" {
 				cns_cmp_func cmp);
 	int cns_list_position(cns_list *list, cns_list *llink);
 	int cns_list_index(cns_list *list, void *data);
+	int cns_list_index_custom(cns_list *list, void *data, cns_cmp_func cmp);
 
 #ifdef __cplusplus
 }

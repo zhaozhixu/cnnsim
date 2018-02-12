@@ -166,3 +166,14 @@ int cns_list_index(cns_list *list, void *data)
 			return i;
 	return -1;
 }
+
+int cns_list_index_custom(cns_list *list, void *data, cns_cmp_func cmp)
+{
+	cns_list *l;
+	int i;
+
+	for (i = 0, l = list; l; l = l->next, i++)
+		if (cmp(data, l->data) == 0)
+			return i;
+	return -1;
+}

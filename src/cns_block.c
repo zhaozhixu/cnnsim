@@ -7,6 +7,17 @@ struct idx_itft {
 	int    itft;		/* interface type */
 };
 
+static int idx_itft_cmp(void *data1, void *data2)
+{
+	struct idx_itft *ii1, *ii2;
+
+	ii1 = (struct idx_itft *)data1;
+	ii2 = (struct idx_itft *)data2;
+	if (ii1->idx == ii2->idx && ii1->itft = ii2->itft)
+		return 0;
+	return -1;
+}
+
 cns_block *cns_block_create(size_t size, cns_dtype dtype, uint8_t width)
 {
 	assert(size > 0 && size <= CNS_MAX_CELLS);
@@ -125,8 +136,6 @@ void cns_block_link(cns_block *block, size_t idx1, int itft1,
 {
 	void **itfp1;
 	void **itfp2;
-	struct idx_itft *ii1;
-	struct idx_itft *ii2;
 
 	switch (itft1) {
 	case CNS_INPUT:
@@ -160,21 +169,62 @@ void cns_block_link(cns_block *block, size_t idx1, int itft1,
 	}
 
 	if (*itfp1 && !*itfp2) {
+		int buf_idx;
+		struct idx_itft *ii2;
 		*itfp2 = *itfp1;
+		ii2 = (struct idx_itft *)cns_alloc(sizeof(struct idx_itft));
+		ii2->idx = idx2;
+		ii2->itft = itft2;
+		buf_idx = cns_pointer_sub(*itfp1, block->cbuf, block->buf_dtype);
+		block->cbuf_itfs[buf_idx] =
+			cns_list_append(block->cbuf_itfs[buf_idx], ii2);
 		return;
 	}
 	if (!*itfp1 && *itfp2) {
+		int buf_idx;
+		struct idx_itft *ii1;
 		*itfp1 = *itfp2;
 		ii1 = (struct idx_itft *)cns_alloc(sizeof(struct idx_itft));
 		ii1->idx = idx1;
 		ii1->itft = itft1;
-		cns_list_append(block->cbuf_itfs[*itfp2-block->cbuf], ii1);
+		buf_idx = cns_pointer_sub(*itfp2, block->cbuf, block->buf_dtype);
+		block->cbuf_itfs[buf_idx] =
+			cns_list_append(block->cbuf_itfs[buf_idx], ii1);
 		return;
 	}
 	if (*itfp1 && *itfp2) {
 		if (*itfp1 == *itfp2)
 			return;
-		/* TODO */
+		int buf_idx1, buf_idx2, find_idx;
+		struct idx_itft *ii;
+		buf_idx1 = cns_pointer_sub(*itfp1, block->cbuf, block->buf_dtype);
+		buf_idx2 = cns_pointer_sub(*itfp2, block->cbuf, block->buf_dtype);
+		ii = (struct idx_itft *)cns_alloc(sizeof(struct idx_itft));
+		if (buf_idx1 < buf_idx2) {
+			*itfp2 = *itfp1;
+			ii->idx = idx2;
+			ii->itft = itft2;
+			find_idx = cns_list_index_custom(block->cbuf_itfs[idx2],
+							ii, idx_itft_cmp);
+			block->cbuf_itfs[buf_idx1] =
+				cns_list_append(block->cbuf_itfs[buf_idx1], ii);
+			block->cbuf_itfs[buf_idx2] =
+				cns_list_remove_nth(block->cbuf_itfs[buf_idx2],
+						find_idx);
+		}
+		else {
+			*itfp1 = *itfp2;
+			ii->idx = idx1;
+			ii->itft = itft1;
+			find_idx = cns_list_index_custom(block->cbuf_itfs[idx1],
+							ii, idx_itft_cmp);
+			block->cbuf_itfs[buf_idx2] =
+				cns_list_append(block->cbuf_itfs[buf_idx2], ii);
+			block->cbuf_itfs[buf_idx1] =
+				cns_list_remove_nth(block->cbuf_itfs[buf_idx1],
+						find_idx);
+		}
+		return;
 	}
 
 	if (block->cbuf_mark >= block->cbuf_size) {
@@ -183,15 +233,20 @@ void cns_block_link(cns_block *block, size_t idx1, int itft1,
 		exit(EXIT_FAILURE);
 	}
 
-	*itfp1 = *itfp2 = &block->cbuf[block->cbuf_mark];
+	struct idx_itft *ii1;
+	struct idx_itft *ii2;
+	*itfp1 = *itfp2 = cns_pointer_add(block->cbuf, block->cbuf_mark,
+					block->buf_dtype);
 	ii1 = (struct idx_itft *)cns_alloc(sizeof(struct idx_itft));
 	ii2 = (struct idx_itft *)cns_alloc(sizeof(struct idx_itft));
 	ii1->idx = idx1;
 	ii1->itft = itft1;
 	ii2->idx = idx2;
 	ii2->itft = itft2;
-	cns_list_append(block->cbuf_itfs[block->cbuf_mark], ii1);
-	cns_list_append(block->cbuf_itfs[block->cbuf_mark], ii2);
+	block->cbuf_itfs[block->cbuf_mark] =
+		cns_list_append(block->cbuf_itfs[block->cbuf_mark], ii1);
+	block->cbuf_itfs[block->cbuf_mark] =
+		cns_list_append(block->cbuf_itfs[block->cbuf_mark], ii2);
 	block->cbuf_mark++;
 }
 
@@ -215,13 +270,19 @@ void cns_block_link_io(cns_block *block, size_t idx, int itft)
 
 	switch (itft) {
 	case CNS_INPUT:
-		block->cells[idx].data.input = &block->ibuf[block->ibuf_mark++];
+		block->cells[idx].data.input = cns_pointer_add(block->ibuf,
+							block->ibuf_mark++,
+							block->buf_dtype);
 		break;
 	case CNS_OUTPUT:
-		block->cells[idx].data.output = &block->obuf[block->obuf_mark++];
+		block->cells[idx].data.output = cns_pointer_add(block->obuf,
+							block->obuf_mark++,
+							block->buf_dtype);
 		break;
 	case CNS_WEIGHT:
-		block->cells[idx].data.weight = &block->wbuf[block->wbuf_mark++];
+		block->cells[idx].data.weight = cns_pointer_add(block->wbuf,
+							block->wbuf_mark++,
+							block->buf_dtype);
 		break;
 	default:
 		fprintf(stderr,

@@ -138,3 +138,53 @@ size_t cns_size_of(cns_dtype dtype)
      }
      return size;
 }
+
+int cns_pointer_sub(void *p1, void *p2, cns_dtype dtype)
+{
+     switch (dtype) {
+     case CNS_BOOL:
+          return (cns_bool_t *)p1 - (cns_bool_t *)p2;
+     case CNS_FLOAT:
+          return (float *)p1 - (float *)p2;
+     case CNS_INT32:
+          return (int32_t *)p1 - (int32_t *)p2;
+     case CNS_INT16:
+          return (int16_t *)p1 - (int16_t *)p2;
+     case CNS_INT8:
+          return (int8_t *)p1 - (int8_t *)p2;
+     case CNS_UINT32:
+          return (uint32_t *)p1 - (uint32_t *)p2;
+     case CNS_UINT16:
+          return (uint16_t *)p1 - (uint16_t *)p2;
+     case CNS_UINT8:
+          return (uint8_t *)p1 - (uint8_t *)p2;
+     default:
+          fprintf(stderr, "ERROR: cns_pointer_sub: unknown cns_dtype %d\n", dtype);
+          exit(EXIT_FAILURE);
+     }
+}
+
+void *cns_pointer_add(void *p, int offset, cns_dtype dtype)
+{
+     switch (dtype) {
+     case CNS_BOOL:
+          return (cns_bool_t *)p + offset;
+     case CNS_FLOAT:
+          return (float *)p + offset
+     case CNS_INT32:
+          return (int32_t *)p + offset
+     case CNS_INT16:
+          return (int16_t *)p + offset
+     case CNS_INT8:
+          return (int8_t *)p + offset
+     case CNS_UINT32:
+          return (uint32_t *)p + offset
+     case CNS_UINT16:
+          return (uint16_t *)p + offset
+     case CNS_UINT8:
+          return (uint8_t *)p + offset
+     default:
+          fprintf(stderr, "ERROR: cns_pointer_add: unknown cns_dtype %d\n", dtype);
+          exit(EXIT_FAILURE);
+     }
+}
