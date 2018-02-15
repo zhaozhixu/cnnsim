@@ -168,6 +168,13 @@ void cns_block_link(cns_block *block, size_t idx1, int itft1,
 		exit(EXIT_FAILURE);
 	}
 
+	if (itft1 == CNS_OUTPUT && (itft2 == CNS_INPUT || itft2 == CNS_WEIGHT)
+		&& idx1 != idx2)
+		cns_block_add_dep(block, idx2, idx1);
+	if (itft2 == CNS_OUTPUT && (itft1 == CNS_INPUT || itft1 == CNS_WEIGHT)
+		&& idx1 != idx2)
+		cns_block_add_dep(block, idx1, idx2);
+
 	if (*itfp1 && !*itfp2) {
 		int buf_idx;
 		struct idx_itft *ii2;
@@ -211,8 +218,7 @@ void cns_block_link(cns_block *block, size_t idx1, int itft1,
 			block->cbuf_itfs[buf_idx2] =
 				cns_list_remove_nth(block->cbuf_itfs[buf_idx2],
 						find_idx);
-		}
-		else {
+		} else {
 			*itfp1 = *itfp2;
 			ii->idx = idx1;
 			ii->itft = itft1;

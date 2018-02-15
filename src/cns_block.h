@@ -39,7 +39,7 @@ struct cns_block {
 extern "C" {
 #endif
 
-	cns_block *cns_block_create(size_t size);
+	cns_block *cns_block_create(size_t size, cns_dtype dtype, uint8_t width);
 	void cns_block_free(cns_block *block);
 	void cns_block_run(cns_block *block);
 	void cns_block_set_data(cns_block *block, size_t index,

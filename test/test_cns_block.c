@@ -13,7 +13,7 @@ static void setup(void)
 	size_t i;
 
 	size = 5;
-	block = cns_block_create(size);
+	block = cns_block_create(size, CNS_INT8, 8);
 	input = (int8_t *)cns_alloc(sizeof(int8_t) * size);
 	output = (int8_t *)cns_alloc(sizeof(int8_t) * size);
 	weight = (int8_t *)cns_alloc(sizeof(int8_t) * size);
@@ -88,6 +88,31 @@ START_TEST(test_block_dep_graph)
 }
 END_TEST
 
+START_TEST(test_block_link)
+{
+	cns_block b;
+	size_t b_size;
+	size_t i;
+
+	b_size = 9 + 9 + 9 + 1 + 1;
+	b = cns_block_create(b_size, CNS_INT8, 8);
+	for (i = 0; i < 9; i++) { /* 9 multipliers */
+		cns_block_link_io(b, i, CNS_INPUT);
+		cns_block_link_io(b, i, CNS_WEIGHT);
+		cns_block_set_op(b, i, cns_cell_op_mul_int8);
+	}
+	for (i = 9; i < 18; i++) { /* 9 adders */
+		cns_block_link(b, i, CNS_INPUT, i-9, CNS_OUTPUT);
+		cns_block_link(b, i, CNS_WEIGHT, i, CNS_OUTPUT);
+		cns_block_set_op(b, i, cns_cell_op_add_int8);
+	}
+	for (i = 18; i < 27; i++) { /* 9 relus */
+		cns_block_link(b, i, CNS_INPUT, i-9, CNS_OUTPUT);
+		cns_block_set_op(b, i, cns_cell_op_relu_int8);
+	}
+}
+END_TEST
+
 /*
  * This is a test block for 3x3 and 1x1 convolution.
  */
@@ -109,7 +134,7 @@ START_TEST(test_block_conv)
 
 	/* 9 multipliers, 9 adders, 9 relus, 1 extra adder, 1 extra relu */
 	block_size = 9 + 9 + 9 + 1 + 1;
-	block = cns_block_create(block_size);
+	block = cns_block_create(block_size, CNS_INT8, 8);
 
 	/* 9 multiplier inputs, 9 multiplier weights,
 	   9 multiplier outputs (adder inputs),
@@ -167,7 +192,7 @@ Suite *make_block_suite(void)
 
 	TCase *tc_block;
 	tc_block = tcase_create("block");
-	tcase_add_checked_fixture(tc_block, setup, teardown);
+p	tcase_add_checked_fixture(tc_block, setup, teardown);
 	tcase_add_test(tc_block, test_block_dep_graph);
 	suite_add_tcase(s, tc_block);
 
