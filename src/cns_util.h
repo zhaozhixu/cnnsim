@@ -22,6 +22,12 @@ enum cns_dtype {
 	CNS_UINT8
 };
 
+enum cns_interface_type {
+	CNS_INPUT,
+	CNS_OUTPUT,
+	CNS_WEIGHT
+};
+
 typedef int (*cns_cmp_func)(void *, void *);
 
 #define cns_free free

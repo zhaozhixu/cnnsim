@@ -88,102 +88,102 @@ START_TEST(test_block_dep_graph)
 }
 END_TEST
 
-START_TEST(test_block_link)
-{
-	cns_block b;
-	size_t b_size;
-	size_t i;
+/* START_TEST(test_block_link) */
+/* { */
+/* 	cns_block b; */
+/* 	size_t b_size; */
+/* 	size_t i; */
 
-	b_size = 9 + 9 + 9 + 1 + 1;
-	b = cns_block_create(b_size, CNS_INT8, 8);
-	for (i = 0; i < 9; i++) { /* 9 multipliers */
-		cns_block_link_io(b, i, CNS_INPUT);
-		cns_block_link_io(b, i, CNS_WEIGHT);
-		cns_block_set_op(b, i, cns_cell_op_mul_int8);
-	}
-	for (i = 9; i < 18; i++) { /* 9 adders */
-		cns_block_link(b, i, CNS_INPUT, i-9, CNS_OUTPUT);
-		cns_block_link(b, i, CNS_WEIGHT, i, CNS_OUTPUT);
-		cns_block_set_op(b, i, cns_cell_op_add_int8);
-	}
-	for (i = 18; i < 27; i++) { /* 9 relus */
-		cns_block_link(b, i, CNS_INPUT, i-9, CNS_OUTPUT);
-		cns_block_set_op(b, i, cns_cell_op_relu_int8);
-	}
-}
-END_TEST
+/* 	b_size = 9 + 9 + 9 + 1 + 1; */
+/* 	b = cns_block_create(b_size, CNS_INT8, 8); */
+/* 	for (i = 0; i < 9; i++) { /\* 9 multipliers *\/ */
+/* 		cns_block_link_io(b, i, CNS_INPUT); */
+/* 		cns_block_link_io(b, i, CNS_WEIGHT); */
+/* 		cns_block_set_op(b, i, cns_cell_op_mul_int8); */
+/* 	} */
+/* 	for (i = 9; i < 18; i++) { /\* 9 adders *\/ */
+/* 		cns_block_link(b, i, CNS_INPUT, i-9, CNS_OUTPUT); */
+/* 		cns_block_link(b, i, CNS_WEIGHT, i, CNS_OUTPUT); */
+/* 		cns_block_set_op(b, i, cns_cell_op_add_int8); */
+/* 	} */
+/* 	for (i = 18; i < 27; i++) { /\* 9 relus *\/ */
+/* 		cns_block_link(b, i, CNS_INPUT, i-9, CNS_OUTPUT); */
+/* 		cns_block_set_op(b, i, cns_cell_op_relu_int8); */
+/* 	} */
+/* } */
+/* END_TEST */
 
-/*
- * This is a test block for 3x3 and 1x1 convolution.
- */
-START_TEST(test_block_conv)
-{
-	cns_block *block;
-	void *buf;
-	void *buf_mi;
-	void *buf_mw;
-	void *buf_mo;
-	void *buf_ao;
-	void *buf_ro;
-	void *buf_eao;
-	void *buf_eaw;
-	void *buf_ero;
-	size_t block_size;
-	size_t nbuf;
-	size_t i;
+/* /\* */
+/*  * This is a test block for 3x3 and 1x1 convolution. */
+/*  *\/ */
+/* START_TEST(test_block_conv) */
+/* { */
+/* 	cns_block *block; */
+/* 	void *buf; */
+/* 	void *buf_mi; */
+/* 	void *buf_mw; */
+/* 	void *buf_mo; */
+/* 	void *buf_ao; */
+/* 	void *buf_ro; */
+/* 	void *buf_eao; */
+/* 	void *buf_eaw; */
+/* 	void *buf_ero; */
+/* 	size_t block_size; */
+/* 	size_t nbuf; */
+/* 	size_t i; */
 
-	/* 9 multipliers, 9 adders, 9 relus, 1 extra adder, 1 extra relu */
-	block_size = 9 + 9 + 9 + 1 + 1;
-	block = cns_block_create(block_size, CNS_INT8, 8);
+/* 	/\* 9 multipliers, 9 adders, 9 relus, 1 extra adder, 1 extra relu *\/ */
+/* 	block_size = 9 + 9 + 9 + 1 + 1; */
+/* 	block = cns_block_create(block_size, CNS_INT8, 8); */
 
-	/* 9 multiplier inputs, 9 multiplier weights,
-	   9 multiplier outputs (adder inputs),
-	   9 adder outputs (relu inputs), 9 relu outputs,
-	   1 extra adder weight,
-	   1 extra adder output (extra relu input),
-	   1 extra relu output */
-	nbuf = 9 + 9 + 9 + 9 + 9 + 1 + 1 + 1;
-	buf = cns_block_alloc_buf(block, nbuf, CNS_INT8);
-	buf_mi = buf;
-	buf_mw = buf_mi + 9;
-	buf_mo = buf_mw + 9;
-	buf_ao = buf_mo + 9;
-	buf_ro = buf_ao + 9;
-	buf_eaw = buf_ro + 9;
-	buf_eao = buf_eaw + 1;
-	buf_ero = buf_eao + 1;
+/* 	/\* 9 multiplier inputs, 9 multiplier weights, */
+/* 	   9 multiplier outputs (adder inputs), */
+/* 	   9 adder outputs (relu inputs), 9 relu outputs, */
+/* 	   1 extra adder weight, */
+/* 	   1 extra adder output (extra relu input), */
+/* 	   1 extra relu output *\/ */
+/* 	nbuf = 9 + 9 + 9 + 9 + 9 + 1 + 1 + 1; */
+/* 	buf = cns_block_alloc_buf(block, nbuf, CNS_INT8); */
+/* 	buf_mi = buf; */
+/* 	buf_mw = buf_mi + 9; */
+/* 	buf_mo = buf_mw + 9; */
+/* 	buf_ao = buf_mo + 9; */
+/* 	buf_ro = buf_ao + 9; */
+/* 	buf_eaw = buf_ro + 9; */
+/* 	buf_eao = buf_eaw + 1; */
+/* 	buf_ero = buf_eao + 1; */
 
-	*(int8_t *)buf_eaw = 9;		/* for cns_cell_op_add_many_int8 */
-	for (i = 0; i < block->size; i++) {
-		cns_block_set_dtype(block, i, CNS_INT8);
-		if (i >= 0 && i < 9) {
-			cns_block_set_data(block, i,
-					buf_mi+i, buf_mw+i, buf_mo+i);
-			cns_block_set_op(block, i, cns_cell_op_mul_int8);
-		}
-		if (i >= 9 && i < 18) {
-			cns_block_set_data(block, i,
-					buf_mo+i-9, buf_ao+i-9, buf_ao+i-9);
-			cns_block_set_op(block, i, cns_cell_op_add_int8);
-		}
-		if (i >= 18 && i < 27) {
-			cns_block_set_data(block, i,
-					buf_ao+i-18, NULL, buf_ro+i-18);
-			cns_block_set_op(block, i, cns_cell_op_relu_int8);
-		}
-		if (i >= 27 && i < 28) {
-			cns_block_set_data(block, i, buf_ao, buf_eaw, buf_eao);
-			cns_block_set_op(block, i, cns_cell_op_add_many_int8);
-		}
-		if (i >= 28 && i < 29) {
-			cns_block_set_data(block, i, buf_eao, NULL, buf_ero);
-			cns_block_set_op(block, i, cns_cell_op_relu_int8);
-		}
-	}
+/* 	*(int8_t *)buf_eaw = 9;		/\* for cns_cell_op_add_many_int8 *\/ */
+/* 	for (i = 0; i < block->size; i++) { */
+/* 		cns_block_set_dtype(block, i, CNS_INT8); */
+/* 		if (i >= 0 && i < 9) { */
+/* 			cns_block_set_data(block, i, */
+/* 					buf_mi+i, buf_mw+i, buf_mo+i); */
+/* 			cns_block_set_op(block, i, cns_cell_op_mul_int8); */
+/* 		} */
+/* 		if (i >= 9 && i < 18) { */
+/* 			cns_block_set_data(block, i, */
+/* 					buf_mo+i-9, buf_ao+i-9, buf_ao+i-9); */
+/* 			cns_block_set_op(block, i, cns_cell_op_add_int8); */
+/* 		} */
+/* 		if (i >= 18 && i < 27) { */
+/* 			cns_block_set_data(block, i, */
+/* 					buf_ao+i-18, NULL, buf_ro+i-18); */
+/* 			cns_block_set_op(block, i, cns_cell_op_relu_int8); */
+/* 		} */
+/* 		if (i >= 27 && i < 28) { */
+/* 			cns_block_set_data(block, i, buf_ao, buf_eaw, buf_eao); */
+/* 			cns_block_set_op(block, i, cns_cell_op_add_many_int8); */
+/* 		} */
+/* 		if (i >= 28 && i < 29) { */
+/* 			cns_block_set_data(block, i, buf_eao, NULL, buf_ero); */
+/* 			cns_block_set_op(block, i, cns_cell_op_relu_int8); */
+/* 		} */
+/* 	} */
 
-	cns_block_free(block);
-}
-END_TEST
+/* 	cns_block_free(block); */
+/* } */
+/* END_TEST */
 
 Suite *make_block_suite(void)
 {
@@ -192,7 +192,7 @@ Suite *make_block_suite(void)
 
 	TCase *tc_block;
 	tc_block = tcase_create("block");
-p	tcase_add_checked_fixture(tc_block, setup, teardown);
+	tcase_add_checked_fixture(tc_block, setup, teardown);
 	tcase_add_test(tc_block, test_block_dep_graph);
 	suite_add_tcase(s, tc_block);
 

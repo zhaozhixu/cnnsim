@@ -10,11 +10,11 @@
 typedef struct cns_block cns_block;
 struct cns_block {
 	size_t          length;	/* number of cells */
+	cns_cell       *cells;	/* array of cells */
 	cns_buf        *ibuf;	/* input buffer */
 	cns_buf        *obuf;	/* output buffer */
 	cns_buf        *wbuf;	/* weight buffer */
 	cns_buf        *cbuf;	/* chore buffer */
-	cns_cell       *cells;	/* array of cells */
 };
 
 #ifdef __cplusplus

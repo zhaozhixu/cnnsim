@@ -9,13 +9,7 @@
 #include "cns_list.h"
 #include "cns_graph.h"
 
-#define CNS_MAX_CELLS LONG_MAX
-
-enum cns_interface_type {
-	CNS_INPUT,
-	CNS_OUTPUT,
-	CNS_WEIGHT
-};
+#define CNS_MAX_CELLS INT_MAX
 
 typedef struct cns_cell_data cns_cell_data;
 struct cns_cell_data {

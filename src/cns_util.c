@@ -170,19 +170,19 @@ void *cns_pointer_add(void *p, int offset, cns_dtype dtype)
      case CNS_BOOL:
           return (cns_bool_t *)p + offset;
      case CNS_FLOAT:
-          return (float *)p + offset
+          return (float *)p + offset;
      case CNS_INT32:
-          return (int32_t *)p + offset
+          return (int32_t *)p + offset;
      case CNS_INT16:
-          return (int16_t *)p + offset
+          return (int16_t *)p + offset;
      case CNS_INT8:
-          return (int8_t *)p + offset
+          return (int8_t *)p + offset;
      case CNS_UINT32:
-          return (uint32_t *)p + offset
+          return (uint32_t *)p + offset;
      case CNS_UINT16:
-          return (uint16_t *)p + offset
+          return (uint16_t *)p + offset;
      case CNS_UINT8:
-          return (uint8_t *)p + offset
+          return (uint8_t *)p + offset;
      default:
           fprintf(stderr, "ERROR: cns_pointer_add: unknown cns_dtype %d\n", dtype);
           exit(EXIT_FAILURE);
