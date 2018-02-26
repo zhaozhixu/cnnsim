@@ -2,54 +2,38 @@
 #include <string.h>
 #include "cns_block.h"
 
-struct idx_itft {
-	size_t idx;		/* index */
-	int    itft;		/* interface type */
-};
-
-static int idx_itft_cmp(void *data1, void *data2)
+cns_block *cns_block_create(size_t length, cns_dtype dtype, uint8_t width)
 {
-	struct idx_itft *ii1, *ii2;
-
-	ii1 = (struct idx_itft *)data1;
-	ii2 = (struct idx_itft *)data2;
-	if (ii1->idx == ii2->idx && ii1->itft = ii2->itft)
-		return 0;
-	return -1;
-}
-
-cns_block *cns_block_create(size_t size, cns_dtype dtype, uint8_t width)
-{
-	assert(size > 0 && size <= CNS_MAX_CELLS);
+	assert(length > 0 && length <= CNS_MAX_CELLS);
 	cns_cell *cells;
 	cns_block *block;
-	size_t i, dsize;
+	size_t i;
 
 	block = (cns_block *)cns_alloc(sizeof(cns_block));
-	dsize = cns_size_of(dtype) * size;
-	block->buf_dtype = dtype;
-	block->ibuf = cns_alloc(dsize);
-	block->obuf = cns_alloc(dsize);
-	block->wbuf = cns_alloc(dsize);
-	block->cbuf = cns_alloc(dsize);
-	memset(block->ibuf, 0, dsize);
-	memset(block->obuf, 0, dsize);
-	memset(block->wbuf, 0, dsize);
-	memset(block->cbuf, 0, dsize);
-	block->ibuf_size = dsize;
-	block->obuf_size = dsize;
-	block->wbuf_size = dsize;
-	block->cbuf_size = dsize;
-	block->ibuf_mark = 0;
-	block->obuf_mark = 0;
-	block->wbuf_mark = 0;
-	block->cbuf_mark = 0;
-	block->cbuf_itfs = (cns_list **)cns_alloc(sizeof(cns_list *) * size);
-	cells = (cns_cell *)cns_alloc(sizeof(cns_cell) * size);
-	block->cells = cells;
-	block->size = size;
+	/* block->buf_dtype = dtype; */
+	/* block->ibuf = cns_alloc(dsize); */
+	/* block->obuf = cns_alloc(dsize); */
+	/* block->wbuf = cns_alloc(dsize); */
+	/* block->cbuf = cns_alloc(dsize); */
+	/* memset(block->ibuf, 0, dsize); */
+	/* memset(block->obuf, 0, dsize); */
+	/* memset(block->wbuf, 0, dsize); */
+	/* memset(block->cbuf, 0, dsize); */
+	/* block->ibuf_size = dsize; */
+	/* block->obuf_size = dsize; */
+	/* block->wbuf_size = dsize; */
+	/* block->cbuf_size = dsize; */
+	/* block->ibuf_mark = 0; */
+	/* block->obuf_mark = 0; */
+	/* block->wbuf_mark = 0; */
+	/* block->cbuf_mark = 0; */
+	/* block->cbuf_itfs = (cns_list **)cns_alloc(sizeof(cns_list *) * length); */
 
-	for (i = 0; i < size; i++) {
+	cells = (cns_cell *)cns_alloc(sizeof(cns_cell) * length);
+	block->cells = cells;
+	block->length = length;
+
+	for (i = 0; i < length; i++) {
 		block->cbuf_itfs[i] = NULL;
 		cells[i].data.width = width;
 		cells[i].data.dtype = dtype;
@@ -69,7 +53,7 @@ void cns_block_free(cns_block *block)
 	assert(block);
 	size_t i;
 
-	for (i = 0; i < block->size; i++)
+	for (i = 0; i < block->length; i++)
 		cns_list_free_deep(block->cbuf_itfs[i]);
 	cns_free(block->cells);
 	cns_free(block->ibuf);
@@ -83,7 +67,7 @@ void cns_block_run(cns_block *block)
 {
 	assert(block && block->cells);
 	size_t i;		/* TODO: need to be parallized */
-	for (i = 0; i < block->size; i++)
+	for (i = 0; i < block->length; i++)
 		cns_cell_run(&block->cells[i]);
 }
 
@@ -108,6 +92,11 @@ void cns_block_set_op(cns_block *block, size_t index, cns_cell_op op)
 	cns_cell_set_op(&block->cells[index], op);
 }
 
+void cns_block_set_en(cns_block *block, size_t index, cns_bool_t en)
+{
+	cns_cell_set_en(&block->cells[index], en);
+}
+
 void cns_block_add_dep(cns_block *block, size_t index, ssize_t dep)
 {
 	cns_cell_add_dep(&block->cells[index], dep);
@@ -121,9 +110,9 @@ cns_graph *cns_block_dep_graph(cns_block *block)
 
 	g = cns_graph_create();
 	cns_graph_add(g, (void *)-1);
-	for (i = 0; i < block->size; i++)
+	for (i = 0; i < block->length; i++)
 		cns_graph_add(g, (void *)i);
-	for (i = 0; i < block->size; i++) {
+	for (i = 0; i < block->length; i++) {
 		for (l = block->cells[i].deps; l; l = l->next)
 			cns_graph_link(g, (void *)l->data, (void *)i);
 	}
@@ -234,8 +223,7 @@ void cns_block_link(cns_block *block, size_t idx1, int itft1,
 	}
 
 	if (block->cbuf_mark >= block->cbuf_size) {
-		fprintf(stderr,
-			"ERROR: cns_block_link: chore buffer overflow\n");
+		fprintf(stderr, "ERROR: cns_block_link: chore buffer overflow\n");
 		exit(EXIT_FAILURE);
 	}
 

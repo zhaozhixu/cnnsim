@@ -4,12 +4,22 @@
 #include "cns_util.h"
 #include "cns_list.h"
 
+/* index and interface attached to a buf element */
+typedef struct cns_buf_ii cns_buf_ii;
+struct cns_buf_ii {
+	size_t idx;		/* index */
+	int    itft;		/* interface type */
+};
+
 typedef struct cns_buf cns_buf;
 struct cns_buf {
 	cns_dtype   dtype;
-	size_t      length;
-	size_t      tail;
-	cns_list  **itfs;
+	size_t      length;	/* number of buf elements */
+	size_t      head;	/* index of the first unattached buf element */
+
+	/* Indexes and interfaces attached to each buf element.
+	   This is an array of cns_list* of cns_buf_ii. */
+	cns_list  **iis;
 	void       *buf;
 };
 
@@ -17,6 +27,11 @@ struct cns_buf {
 extern "C" {
 #endif
 
+	cns_buf *cns_buf_create(size_t length, cns_dtype dtype);
+	void cns_buf_free(cns_buf *buf);
+	void cns_buf_attach(cns_buf *buf, size_t buf_idx, size_t idx, int itft);
+	void cns_buf_detach(cns_buf *buf, size_t buf_idx, size_t idx, int itft);
+	void cns_buf_append(cns_buf *buf, size_t idx, int itft);
 
 #ifdef __cplusplus
 }

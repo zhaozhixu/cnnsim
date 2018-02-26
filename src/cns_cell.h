@@ -11,6 +11,12 @@
 
 #define CNS_MAX_CELLS LONG_MAX
 
+enum cns_interface_type {
+	CNS_INPUT,
+	CNS_OUTPUT,
+	CNS_WEIGHT
+};
+
 typedef struct cns_cell_data cns_cell_data;
 struct cns_cell_data {
 	uint8_t         width;
@@ -29,6 +35,7 @@ struct cns_cell {
 	cns_cell_data   data;
 	cns_cell_op     op;	/* operation on the data, function pointer */
 	size_t          index;	/* index in a cell array */
+	cns_bool_t      en;	/* whether this cell is enabled */
 
 	/* They are the indexes of cells in the same cell array
 	   on which this cell depends. It starts running after
@@ -50,6 +57,7 @@ extern "C" {
 	void cns_cell_set_width(cns_cell *cell, uint8_t width);
 	void cns_cell_set_dtype(cns_cell *cell, cns_dtype dtype);
 	void cns_cell_set_op(cns_cell *cell, cns_cell_op op);
+	void cns_cell_set_en(cns_cell *cell, cns_bool_t en);
 	void cns_cell_add_dep(cns_cell *cell, ssize_t dep);
 	void cns_cell_fprint_data(FILE *fp, cns_cell *cell);
 	void cns_cell_print_data(cns_cell *cell);

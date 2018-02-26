@@ -45,6 +45,12 @@ void cns_cell_set_op(cns_cell *cell, cns_cell_op op)
 	cell->op = op;
 }
 
+void cns_cell_set_en(cns_cell *cell, cns_bool_t en)
+{
+	assert(cell);
+	cell->en = en;
+}
+
 void cns_cell_add_dep(cns_cell *cell, ssize_t dep)
 {
 	assert(cell);
