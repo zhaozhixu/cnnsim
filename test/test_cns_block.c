@@ -186,6 +186,34 @@ START_TEST(test_block_link)
 }
 END_TEST
 
+START_TEST(test_block_expand)
+{
+	cns_block *new_block;
+	size_t idx;
+
+	cns_block_link_io(block, 0, CNS_INPUT);
+	cns_block_link_io(block, 0, CNS_WEIGHT);
+	cns_block_set_op(block, 0, cns_cell_op_mul_int8);
+	cns_block_link_io(block, 1, CNS_INPUT);
+	cns_block_link_io(block, 1, CNS_WEIGHT);
+	cns_block_set_op(block, 1, cns_cell_op_mul_int8);
+	cns_block_link(block, 2, CNS_INPUT, 0, CNS_OUTPUT);
+	cns_block_link(block, 2, CNS_WEIGHT, 1, CNS_OUTPUT);
+	cns_block_set_op(block, 1, cns_cell_op_add_int8);
+	cns_block_link(block, 3, CNS_INPUT, 2, CNS_OUTPUT);
+	cns_block_link(block, 3, CNS_WEIGHT, 3, CNS_OUTPUT);
+	cns_block_set_op(block, 3, cns_cell_op_relu_int8);
+	cns_block_link(block, 4, CNS_INPUT, 3, CNS_OUTPUT);
+	cns_block_link_io(block, 4, CNS_OUTPUT);
+	cns_block_set_op(block, 4, cns_cell_op_assign_int8);
+
+	new_block = cns_block_expand(block, 1);
+	for (idx = 0; idx < new_block->length; idx++) {
+
+	}
+}
+END_TEST
+
 /* START_TEST(test_block_conv) */
 /* { */
 /* 	cns_block b; */
@@ -222,6 +250,7 @@ Suite *make_block_suite(void)
 	tcase_add_test(tc_block, test_block_dep_graph);
 	tcase_add_test(tc_block, test_block_link_io);
 	tcase_add_test(tc_block, test_block_link);
+	tcase_add_test(tc_block, test_block_expand);
 	suite_add_tcase(s, tc_block);
 
 	return s;

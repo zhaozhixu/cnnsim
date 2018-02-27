@@ -14,6 +14,21 @@ static int ii_cmp(void *data1, void *data2)
 	return -1;
 }
 
+cns_buf_ii *cns_buf_ii_create(size_t idx, int itft)
+{
+	cns_buf_ii *ii;
+
+	ii = (cns_buf_ii *)cns_alloc(sizeof(cns_buf_ii));
+	ii->idx = idx;
+	ii->itft = itft;
+	return ii;
+}
+
+void cns_buf_ii_free(cns_buf_ii *ii)
+{
+	cns_free(ii);
+}
+
 cns_buf *cns_buf_create(size_t length, cns_dtype dtype)
 {
 	cns_buf *buf;
@@ -58,9 +73,7 @@ void *cns_buf_attach(cns_buf *buf, size_t buf_idx, size_t idx, int itft)
 	assert(buf_idx <= buf->tail);
 	cns_buf_ii *ii;
 
-	ii = (cns_buf_ii *)cns_alloc(sizeof(cns_buf_ii));
-	ii->idx = idx;
-	ii->itft = itft;
+	ii = cns_buf_ii_create(idx, itft);
 	buf->iis[buf_idx] = cns_list_append(buf->iis[buf_idx], ii);
 
 	return cns_pointer_add(buf->buf, buf_idx, buf->dtype);
@@ -72,9 +85,7 @@ void cns_buf_detach(cns_buf *buf, size_t buf_idx, size_t idx, int itft)
 	cns_buf_ii *ii;
 	int found_idx;
 
-	ii = (cns_buf_ii *)cns_alloc(sizeof(cns_buf_ii));
-	ii->idx = idx;
-	ii->itft = itft;
+	ii = cns_buf_ii_create(idx, itft);
 	found_idx = cns_list_index_custom(buf->iis[buf_idx], ii, ii_cmp);
 	cns_free(ii);
 	if (found_idx < 0)
@@ -91,16 +102,17 @@ void *cns_buf_append(cns_buf *buf, size_t idx, int itft)
 		exit(EXIT_FAILURE);
 	}
 
-	ii = (cns_buf_ii *)cns_alloc(sizeof(cns_buf_ii));
-	ii->idx = idx;
-	ii->itft = itft;
+	ii = cns_buf_ii_create(idx, itft);
 	buf->iis[buf->head] = cns_list_append(buf->iis[buf->head], ii);
 	buf->head++;
 
 	return cns_pointer_add(buf->buf, buf->head-1, buf->dtype);
 }
 
-void cns_buf_rewind(cns_buf *buf)
+int cns_buf_seek(cns_buf *buf, size_t pos)
 {
-	buf->head = 0;
+	if (pos >= buf->length)
+		return -1;
+	buf->head = pos;
+	return 0;
 }

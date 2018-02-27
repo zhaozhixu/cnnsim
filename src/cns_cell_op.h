@@ -11,6 +11,7 @@ extern "C" {
 	void cns_cell_op_add_int8(cns_cell_data *data);
 	void cns_cell_op_relu_int8(cns_cell_data *data);
 	void cns_cell_op_add_many_int8(cns_cell_data *data);
+	void cns_cell_op_assign_int8(cns_cell_data *data);
 
 #ifdef __cplusplus
 }

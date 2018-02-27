@@ -27,6 +27,8 @@ struct cns_buf {
 extern "C" {
 #endif
 
+	cns_buf_ii *cns_buf_ii_create(size_t idx, int itft);
+	void cns_buf_ii_free(cns_buf_ii *ii);
 	cns_buf *cns_buf_create(size_t length, cns_dtype dtype);
 	void cns_buf_free(cns_buf *buf);
 	int cns_buf_index(cns_buf *buf, void *addr);
@@ -34,7 +36,7 @@ extern "C" {
 	void *cns_buf_attach(cns_buf *buf, size_t buf_idx, size_t idx, int itft);
 	void cns_buf_detach(cns_buf *buf, size_t buf_idx, size_t idx, int itft);
 	void *cns_buf_append(cns_buf *buf, size_t idx, int itft);
-	void cns_buf_rewind(cns_buf *buf);
+	int cns_buf_seek(cns_buf *buf, size_t pos);
 
 #ifdef __cplusplus
 }

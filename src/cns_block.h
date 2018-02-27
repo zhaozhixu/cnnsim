@@ -9,6 +9,8 @@
 
 typedef struct cns_block cns_block;
 struct cns_block {
+	uint8_t         width;	/* data width (for cns_block_expand) */
+	cns_dtype       dtype;	/* data type (for cns_block_expand) */
 	size_t          length;	/* number of cells */
 	cns_cell       *cells;	/* array of cells */
 	cns_buf        *ibuf;	/* input buffer */
@@ -32,9 +34,11 @@ extern "C" {
 	void cns_block_set_en(cns_block *block, size_t index, cns_bool_t en);
 	void cns_block_add_dep(cns_block *block, size_t index, ssize_t dep);
 	cns_graph *cns_block_dep_graph(cns_block *block);
+	void **cns_block_find_itfp(cns_block *block, size_t idx, int itft);
 	void cns_block_link(cns_block *block, size_t idx1, int itft1,
 			size_t idx2, int itft2);
 	void cns_block_link_io(cns_block *block, size_t idx, int itft);
+	cns_block *cns_block_expand(cns_block *block, uint32_t multiple);
 
 #ifdef __cplusplus
 }

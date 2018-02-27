@@ -95,12 +95,15 @@ START_TEST(test_buf_detach)
 }
 END_TEST
 
-START_TEST(test_buf_rewind)
+START_TEST(test_buf_seek)
 {
 	cns_buf_append(buf, 0, CNS_INPUT);
 	cns_buf_append(buf, 1, CNS_INPUT);
 
-	cns_buf_rewind(buf);
+	cns_buf_seek(buf, 0);
+	ck_assert_int_eq(buf->head, 0);
+
+	ck_assert_int_eq(cns_buf_seek(buf, 9), -1);
 	ck_assert_int_eq(buf->head, 0);
 }
 END_TEST
@@ -146,7 +149,7 @@ Suite *make_buf_suite(void)
 	tcase_add_test(tc_buf, test_buf_append);
 	tcase_add_test(tc_buf, test_buf_attach);
 	tcase_add_test(tc_buf, test_buf_detach);
-	tcase_add_test(tc_buf, test_buf_rewind);
+	tcase_add_test(tc_buf, test_buf_seek);
 	tcase_add_test(tc_buf, test_buf_index);
 	tcase_add_test(tc_buf, test_buf_addr);
 	suite_add_tcase(s, tc_buf);
