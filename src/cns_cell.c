@@ -54,6 +54,8 @@ void cns_cell_set_en(cns_cell *cell, cns_bool_t en)
 void cns_cell_add_dep(cns_cell *cell, ssize_t dep)
 {
 	assert(cell);
+	if (cns_list_index(cell->deps, (void *)dep) >= 0)
+		return;
 	cell->deps = cns_list_append(cell->deps, (void *)dep);
 }
 

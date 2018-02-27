@@ -155,6 +155,8 @@ void cns_block_link(cns_block *block, size_t idx1, int itft1, size_t idx2, int i
 		*itfp1 = cns_buf_attach(block->cbuf, buf_idx, idx1, itft1);
 		return;
 	}
+	/* Shouldn't enter this branch in practice,
+	   causing an interface dangling easily. */
 	if (*itfp1 && *itfp2) {
 		if (*itfp1 == *itfp2)
 			return;
@@ -178,12 +180,14 @@ void cns_block_link_io(cns_block *block, size_t idx, int itft)
 	switch (itft) {
 	case CNS_INPUT:
 		block->cells[idx].data.input = cns_buf_append(block->ibuf, idx, itft);
+		cns_block_add_dep(block, idx, -1);
 		break;
 	case CNS_OUTPUT:
 		block->cells[idx].data.output = cns_buf_append(block->obuf, idx, itft);
 		break;
 	case CNS_WEIGHT:
 		block->cells[idx].data.weight = cns_buf_append(block->wbuf, idx, itft);
+		cns_block_add_dep(block, idx, -1);
 		break;
 	default:
 		fprintf(stderr,

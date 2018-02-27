@@ -21,10 +21,10 @@ static void setup(void)
 		input[i] = -i;
 		output[i] = i;
 		weight[i] = 1;
-		cns_block_set_data(block, i, &input[i], &weight[i], &output[i]);
-		cns_block_set_dtype(block, i, CNS_INT8);
-		cns_block_set_width(block, i, 8);
-		cns_block_set_op(block, i, &cns_cell_op_mul_int8);
+		/* cns_block_set_data(block, i, &input[i], &weight[i], &output[i]); */
+		/* cns_block_set_dtype(block, i, CNS_INT8); */
+		/* cns_block_set_width(block, i, 8); */
+		/* cns_block_set_op(block, i, &cns_cell_op_mul_int8); */
 	}
 }
 
@@ -88,7 +88,105 @@ START_TEST(test_block_dep_graph)
 }
 END_TEST
 
-/* START_TEST(test_block_link) */
+START_TEST(test_block_link_io)
+{
+	cns_block_link_io(block, 0, CNS_INPUT);
+	cns_block_link_io(block, 0, CNS_WEIGHT);
+	cns_block_link_io(block, 1, CNS_INPUT);
+	cns_block_link_io(block, 1, CNS_WEIGHT);
+	cns_block_link_io(block, 2, CNS_OUTPUT);
+	ck_assert_ptr_eq(block->cells[0].data.input, block->ibuf->buf);
+	ck_assert_ptr_eq(block->cells[0].data.weight, block->wbuf->buf);
+	ck_assert_ptr_eq(block->cells[1].data.input, (int8_t *)block->ibuf->buf+1);
+	ck_assert_ptr_eq(block->cells[1].data.weight, (int8_t *)block->wbuf->buf+1);
+	ck_assert_ptr_eq(block->cells[2].data.output, (int8_t *)block->obuf->buf);
+	ck_assert_int_eq((ssize_t)block->cells[0].deps->data, -1);
+	ck_assert_ptr_eq(block->cells[0].deps->next, NULL);
+	ck_assert_int_eq((ssize_t)block->cells[1].deps->data, -1);
+	ck_assert_ptr_eq(block->cells[1].deps->next, NULL);
+	ck_assert_ptr_eq(block->cells[2].deps, NULL);
+}
+END_TEST
+
+START_TEST(test_block_link)
+{
+	cns_block_link(block, 0, CNS_OUTPUT, 1, CNS_INPUT);
+	ck_assert_ptr_eq(block->cells[0].data.output, block->cbuf->buf);
+	ck_assert_ptr_eq(block->cells[1].data.input, block->cbuf->buf);
+	ck_assert_int_eq(((cns_buf_ii *)block->cbuf->iis[0]->data)->idx, 0);
+	ck_assert_int_eq(((cns_buf_ii *)block->cbuf->iis[0]->data)->itft, CNS_OUTPUT);
+	ck_assert_int_eq(((cns_buf_ii *)block->cbuf->iis[0]->next->data)->idx, 1);
+	ck_assert_int_eq(((cns_buf_ii *)block->cbuf->iis[0]->next->data)->itft, CNS_INPUT);
+	ck_assert_ptr_eq(block->cbuf->iis[0]->next->next, NULL);
+	ck_assert_ptr_eq(block->cells[0].deps, NULL);
+	ck_assert_int_eq((ssize_t)block->cells[1].deps->data, 0);
+	ck_assert_ptr_eq(block->cells[1].deps->next, NULL);
+
+	cns_block_link(block, 0, CNS_OUTPUT, 1, CNS_WEIGHT);
+	ck_assert_ptr_eq(block->cells[0].data.output, block->cbuf->buf);
+	ck_assert_ptr_eq(block->cells[1].data.weight, block->cbuf->buf);
+	ck_assert_int_eq(((cns_buf_ii *)block->cbuf->iis[0]->next->next->data)->idx, 1);
+	ck_assert_int_eq(((cns_buf_ii *)block->cbuf->iis[0]->next->next->data)->itft, CNS_WEIGHT);
+	ck_assert_ptr_eq(block->cbuf->iis[0]->next->next->next, NULL);
+	ck_assert_ptr_eq(block->cells[0].deps, NULL);
+	ck_assert_int_eq((ssize_t)block->cells[1].deps->data, 0);
+	ck_assert_ptr_eq(block->cells[1].deps->next, NULL);
+
+	cns_block_link(block, 1, CNS_OUTPUT, 2, CNS_WEIGHT);
+	cns_block_link(block, 3, CNS_INPUT, 1, CNS_OUTPUT);
+	ck_assert_ptr_eq(block->cells[1].data.output, (int8_t *)block->cbuf->buf+1);
+	ck_assert_ptr_eq(block->cells[2].data.weight, (int8_t *)block->cbuf->buf+1);
+	ck_assert_ptr_eq(block->cells[3].data.input, (int8_t *)block->cbuf->buf+1);
+	ck_assert_int_eq(((cns_buf_ii *)block->cbuf->iis[1]->data)->idx, 1);
+	ck_assert_int_eq(((cns_buf_ii *)block->cbuf->iis[1]->data)->itft, CNS_OUTPUT);
+	ck_assert_int_eq(((cns_buf_ii *)block->cbuf->iis[1]->next->data)->idx, 2);
+	ck_assert_int_eq(((cns_buf_ii *)block->cbuf->iis[1]->next->data)->itft, CNS_WEIGHT);
+	ck_assert_int_eq(((cns_buf_ii *)block->cbuf->iis[1]->next->next->data)->idx, 3);
+	ck_assert_int_eq(((cns_buf_ii *)block->cbuf->iis[1]->next->next->data)->itft, CNS_INPUT);
+	ck_assert_ptr_eq(block->cbuf->iis[1]->next->next->next, NULL);
+	ck_assert_ptr_eq(block->cells[0].deps, NULL);
+	ck_assert_int_eq((ssize_t)block->cells[1].deps->data, 0);
+	ck_assert_ptr_eq(block->cells[1].deps->next, NULL);
+	ck_assert_int_eq((ssize_t)block->cells[2].deps->data, 1);
+	ck_assert_ptr_eq(block->cells[2].deps->next, NULL);
+	ck_assert_int_eq((ssize_t)block->cells[3].deps->data, 1);
+	ck_assert_ptr_eq(block->cells[3].deps->next, NULL);
+
+	cns_block_link(block, 3, CNS_OUTPUT, 3, CNS_WEIGHT);
+	ck_assert_ptr_eq(block->cells[3].data.output, (int8_t *)block->cbuf->buf+2);
+	ck_assert_ptr_eq(block->cells[3].data.weight, (int8_t *)block->cbuf->buf+2);
+	ck_assert_int_eq(((cns_buf_ii *)block->cbuf->iis[2]->data)->idx, 3);
+	ck_assert_int_eq(((cns_buf_ii *)block->cbuf->iis[2]->data)->itft, CNS_OUTPUT);
+	ck_assert_int_eq(((cns_buf_ii *)block->cbuf->iis[2]->next->data)->idx, 3);
+	ck_assert_int_eq(((cns_buf_ii *)block->cbuf->iis[2]->next->data)->itft, CNS_WEIGHT);
+	ck_assert_ptr_eq(block->cbuf->iis[2]->next->next, NULL);
+	ck_assert_ptr_eq(block->cells[0].deps, NULL);
+	ck_assert_int_eq((ssize_t)block->cells[1].deps->data, 0);
+	ck_assert_ptr_eq(block->cells[1].deps->next, NULL);
+	ck_assert_int_eq((ssize_t)block->cells[2].deps->data, 1);
+	ck_assert_ptr_eq(block->cells[2].deps->next, NULL);
+	ck_assert_int_eq((ssize_t)block->cells[3].deps->data, 1);
+	ck_assert_ptr_eq(block->cells[3].deps->next, NULL);
+
+	/* Shouldn't enter this branch in practice,
+	   causing CNS_OUTPUT of cell 3 dangling. */
+	cns_block_link(block, 3, CNS_WEIGHT, 1, CNS_OUTPUT);
+	ck_assert_ptr_eq(block->cells[3].data.output, (int8_t *)block->cbuf->buf+2);
+	ck_assert_ptr_eq(block->cells[3].data.weight, (int8_t *)block->cbuf->buf+1);
+	ck_assert_int_eq(((cns_buf_ii *)block->cbuf->iis[2]->data)->idx, 3);
+	ck_assert_int_eq(((cns_buf_ii *)block->cbuf->iis[2]->data)->itft, CNS_OUTPUT);
+	ck_assert_ptr_eq(block->cbuf->iis[2]->next, NULL);
+	ck_assert_ptr_eq(block->cells[0].deps, NULL);
+	ck_assert_int_eq((ssize_t)block->cells[1].deps->data, 0);
+	ck_assert_ptr_eq(block->cells[1].deps->next, NULL);
+	ck_assert_int_eq((ssize_t)block->cells[2].deps->data, 1);
+	ck_assert_ptr_eq(block->cells[2].deps->next, NULL);
+	ck_assert_int_eq((ssize_t)block->cells[3].deps->data, 1);
+	ck_assert_ptr_eq(block->cells[3].deps->next, NULL);
+}
+END_TEST
+
+/* START_TEST(test_block_conv) */
 /* { */
 /* 	cns_block b; */
 /* 	size_t b_size; */
@@ -113,78 +211,6 @@ END_TEST
 /* } */
 /* END_TEST */
 
-/* /\* */
-/*  * This is a test block for 3x3 and 1x1 convolution. */
-/*  *\/ */
-/* START_TEST(test_block_conv) */
-/* { */
-/* 	cns_block *block; */
-/* 	void *buf; */
-/* 	void *buf_mi; */
-/* 	void *buf_mw; */
-/* 	void *buf_mo; */
-/* 	void *buf_ao; */
-/* 	void *buf_ro; */
-/* 	void *buf_eao; */
-/* 	void *buf_eaw; */
-/* 	void *buf_ero; */
-/* 	size_t block_size; */
-/* 	size_t nbuf; */
-/* 	size_t i; */
-
-/* 	/\* 9 multipliers, 9 adders, 9 relus, 1 extra adder, 1 extra relu *\/ */
-/* 	block_size = 9 + 9 + 9 + 1 + 1; */
-/* 	block = cns_block_create(block_size, CNS_INT8, 8); */
-
-/* 	/\* 9 multiplier inputs, 9 multiplier weights, */
-/* 	   9 multiplier outputs (adder inputs), */
-/* 	   9 adder outputs (relu inputs), 9 relu outputs, */
-/* 	   1 extra adder weight, */
-/* 	   1 extra adder output (extra relu input), */
-/* 	   1 extra relu output *\/ */
-/* 	nbuf = 9 + 9 + 9 + 9 + 9 + 1 + 1 + 1; */
-/* 	buf = cns_block_alloc_buf(block, nbuf, CNS_INT8); */
-/* 	buf_mi = buf; */
-/* 	buf_mw = buf_mi + 9; */
-/* 	buf_mo = buf_mw + 9; */
-/* 	buf_ao = buf_mo + 9; */
-/* 	buf_ro = buf_ao + 9; */
-/* 	buf_eaw = buf_ro + 9; */
-/* 	buf_eao = buf_eaw + 1; */
-/* 	buf_ero = buf_eao + 1; */
-
-/* 	*(int8_t *)buf_eaw = 9;		/\* for cns_cell_op_add_many_int8 *\/ */
-/* 	for (i = 0; i < block->size; i++) { */
-/* 		cns_block_set_dtype(block, i, CNS_INT8); */
-/* 		if (i >= 0 && i < 9) { */
-/* 			cns_block_set_data(block, i, */
-/* 					buf_mi+i, buf_mw+i, buf_mo+i); */
-/* 			cns_block_set_op(block, i, cns_cell_op_mul_int8); */
-/* 		} */
-/* 		if (i >= 9 && i < 18) { */
-/* 			cns_block_set_data(block, i, */
-/* 					buf_mo+i-9, buf_ao+i-9, buf_ao+i-9); */
-/* 			cns_block_set_op(block, i, cns_cell_op_add_int8); */
-/* 		} */
-/* 		if (i >= 18 && i < 27) { */
-/* 			cns_block_set_data(block, i, */
-/* 					buf_ao+i-18, NULL, buf_ro+i-18); */
-/* 			cns_block_set_op(block, i, cns_cell_op_relu_int8); */
-/* 		} */
-/* 		if (i >= 27 && i < 28) { */
-/* 			cns_block_set_data(block, i, buf_ao, buf_eaw, buf_eao); */
-/* 			cns_block_set_op(block, i, cns_cell_op_add_many_int8); */
-/* 		} */
-/* 		if (i >= 28 && i < 29) { */
-/* 			cns_block_set_data(block, i, buf_eao, NULL, buf_ero); */
-/* 			cns_block_set_op(block, i, cns_cell_op_relu_int8); */
-/* 		} */
-/* 	} */
-
-/* 	cns_block_free(block); */
-/* } */
-/* END_TEST */
-
 Suite *make_block_suite(void)
 {
 	Suite *s;
@@ -194,6 +220,8 @@ Suite *make_block_suite(void)
 	tc_block = tcase_create("block");
 	tcase_add_checked_fixture(tc_block, setup, teardown);
 	tcase_add_test(tc_block, test_block_dep_graph);
+	tcase_add_test(tc_block, test_block_link_io);
+	tcase_add_test(tc_block, test_block_link);
 	suite_add_tcase(s, tc_block);
 
 	return s;
