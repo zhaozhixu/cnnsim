@@ -125,7 +125,8 @@ void **cns_block_find_itfp(cns_block *block, size_t idx, int itft)
 		break;
 	default:
 		fprintf(stderr,
-			"ERROR: cns_block_find_itfp: unknown cns_interface_type %d\n", itft);
+			"ERROR: cns_block_find_itfp: unknown cns_interface_type %d\n",
+			itft);
 		exit(EXIT_FAILURE);
 	}
 
@@ -161,7 +162,8 @@ void cns_block_link(cns_block *block, size_t idx1, int itft1, size_t idx2, int i
 	/* Shouldn't enter this branch in practice,
 	   causing an dangling interface easily. */
 	if (*itfp1 && *itfp2) {
-		fprintf(stderr, "WARNING: cns_block_link: linking two attached interfaces\n");
+		fprintf(stderr,
+			"WARNING: cns_block_link: linking two attached interfaces\n");
 		if (*itfp1 == *itfp2)
 			return;
 		buf_idx1 = cns_buf_index(block->cbuf, *itfp1);
@@ -195,7 +197,8 @@ void cns_block_link_io(cns_block *block, size_t idx, int itft)
 		break;
 	default:
 		fprintf(stderr,
-			"ERROR: cns_block_link_io: unknown cns_interface_type %d\n", itft);
+			"ERROR: cns_block_link_io: unknown cns_interface_type %d\n",
+			itft);
 		exit(EXIT_FAILURE);
 	}
 }
@@ -209,8 +212,8 @@ cns_block *cns_block_expand(cns_block *block, uint32_t multiple)
 	ssize_t dep;
 	size_t new_length;
 	size_t new_cell_idx;
-	size_t new_buf_idx;
-	size_t buf_idx;
+	size_t new_ibuf_idx, new_wbuf_idx, new_obuf_idx, new_cbuf_idx;
+	size_t idx;
 	uint32_t mul;
 	void *p;
 	void **itfp;
@@ -225,18 +228,14 @@ cns_block *cns_block_expand(cns_block *block, uint32_t multiple)
 		exit(EXIT_FAILURE);
 	}
 	new_block = cns_block_create(new_length, block->dtype, block->width);
-	new_block->ibuf->head = (multiple - 1) * block->length + block->ibuf->head;
-	new_block->wbuf->head = (multiple - 1) * block->length + block->wbuf->head;
-	new_block->obuf->head = (multiple - 1) * block->length + block->obuf->head;
-	new_block->cbuf->head = (multiple - 1) * block->length + block->cbuf->head;
 
-	/* iterate over all new cells and new block bufs */
-	for (buf_idx = 0; buf_idx < block->length; buf_idx++) {
-		for (mul = 0; mul < multiple; mul++) {
-			new_cell_idx = mul * block->length + buf_idx;
-			cns_block_set_op(new_block, new_cell_idx, block->cells[buf_idx].op);
-			cns_block_set_en(new_block, new_cell_idx, block->cells[buf_idx].en);
-			for (deps = block->cells[buf_idx].deps; deps; deps = deps->next) {
+	/* iterate over new cells and new block bufs */
+	for (mul = 0; mul < multiple; mul++) {
+		for (idx = 0; idx < block->length; idx++) {
+			new_cell_idx = mul * block->length + idx;
+			cns_block_set_op(new_block, new_cell_idx, block->cells[idx].op);
+			cns_block_set_en(new_block, new_cell_idx, block->cells[idx].en);
+			for (deps = block->cells[idx].deps; deps; deps = deps->next) {
 				dep = (ssize_t)deps->data;
 				if (dep == -1) {
 					cns_block_add_dep(new_block, new_cell_idx, -1);
@@ -246,36 +245,47 @@ cns_block *cns_block_expand(cns_block *block, uint32_t multiple)
 						mul * block->length + dep);
 			}
 
-			new_buf_idx = mul * block->length + buf_idx;
-			for (iis = block->ibuf->iis[buf_idx]; iis; iis = iis->next) {
+			new_ibuf_idx = new_block->ibuf->head;
+			if (block->ibuf->iis[idx])
+				new_block->ibuf->head++;
+			for (iis = block->ibuf->iis[idx]; iis; iis = iis->next) {
 				ii = (cns_buf_ii *)iis->data;
 				new_cell_idx = mul * block->length + ii->idx;
 				p = cns_buf_attach(new_block->ibuf,
-					new_buf_idx, new_cell_idx, ii->itft);
+					new_ibuf_idx, new_cell_idx, ii->itft);
 				itfp = cns_block_find_itfp(new_block, new_cell_idx, ii->itft);
 				*itfp = p;
 			}
-			for (iis = block->wbuf->iis[buf_idx]; iis; iis = iis->next) {
+			new_wbuf_idx = new_block->wbuf->head;
+			if (block->wbuf->iis[idx])
+				new_block->wbuf->head++;
+			for (iis = block->wbuf->iis[idx]; iis; iis = iis->next) {
 				ii = (cns_buf_ii *)iis->data;
 				new_cell_idx = mul * block->length + ii->idx;
 				p = cns_buf_attach(new_block->wbuf,
-						new_buf_idx, new_cell_idx, ii->itft);
+						new_wbuf_idx, new_cell_idx, ii->itft);
 				itfp = cns_block_find_itfp(new_block, new_cell_idx, ii->itft);
 				*itfp = p;
 			}
-			for (iis = block->obuf->iis[buf_idx]; iis; iis = iis->next) {
+			new_obuf_idx = new_block->obuf->head;
+			if (block->obuf->iis[idx])
+				new_block->obuf->head++;
+			for (iis = block->obuf->iis[idx]; iis; iis = iis->next) {
 				ii = (cns_buf_ii *)iis->data;
 				new_cell_idx = mul * block->length + ii->idx;
 				p = cns_buf_attach(new_block->obuf,
-						new_buf_idx, new_cell_idx, ii->itft);
+						new_obuf_idx, new_cell_idx, ii->itft);
 				itfp = cns_block_find_itfp(new_block, new_cell_idx, ii->itft);
 				*itfp = p;
 			}
-			for (iis = block->cbuf->iis[buf_idx]; iis; iis = iis->next) {
+			new_cbuf_idx = new_block->cbuf->head;
+			if (block->cbuf->iis[idx])
+				new_block->cbuf->head++;
+			for (iis = block->cbuf->iis[idx]; iis; iis = iis->next) {
 				ii = (cns_buf_ii *)iis->data;
 				new_cell_idx = mul * block->length + ii->idx;
 				p = cns_buf_attach(new_block->cbuf,
-						new_buf_idx, new_cell_idx, ii->itft);
+						new_cbuf_idx, new_cell_idx, ii->itft);
 				itfp = cns_block_find_itfp(new_block, new_cell_idx, ii->itft);
 				*itfp = p;
 			}
