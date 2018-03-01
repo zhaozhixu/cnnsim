@@ -252,7 +252,7 @@ cns_block *cns_block_expand(cns_block *block, uint32_t multiple)
 				new_cell_idx = mul * block->length + ii->idx;
 				p = cns_buf_attach(new_block->ibuf,
 					new_buf_idx, new_cell_idx, ii->itft);
-				itfp = cns_block_find_itfp(block, new_cell_idx, ii->itft);
+				itfp = cns_block_find_itfp(new_block, new_cell_idx, ii->itft);
 				*itfp = p;
 			}
 			for (iis = block->wbuf->iis[buf_idx]; iis; iis = iis->next) {
@@ -260,7 +260,7 @@ cns_block *cns_block_expand(cns_block *block, uint32_t multiple)
 				new_cell_idx = mul * block->length + ii->idx;
 				p = cns_buf_attach(new_block->wbuf,
 						new_buf_idx, new_cell_idx, ii->itft);
-				itfp = cns_block_find_itfp(block, new_cell_idx, ii->itft);
+				itfp = cns_block_find_itfp(new_block, new_cell_idx, ii->itft);
 				*itfp = p;
 			}
 			for (iis = block->obuf->iis[buf_idx]; iis; iis = iis->next) {
@@ -268,7 +268,7 @@ cns_block *cns_block_expand(cns_block *block, uint32_t multiple)
 				new_cell_idx = mul * block->length + ii->idx;
 				p = cns_buf_attach(new_block->obuf,
 						new_buf_idx, new_cell_idx, ii->itft);
-				itfp = cns_block_find_itfp(block, new_cell_idx, ii->itft);
+				itfp = cns_block_find_itfp(new_block, new_cell_idx, ii->itft);
 				*itfp = p;
 			}
 			for (iis = block->cbuf->iis[buf_idx]; iis; iis = iis->next) {
@@ -276,7 +276,7 @@ cns_block *cns_block_expand(cns_block *block, uint32_t multiple)
 				new_cell_idx = mul * block->length + ii->idx;
 				p = cns_buf_attach(new_block->cbuf,
 						new_buf_idx, new_cell_idx, ii->itft);
-				itfp = cns_block_find_itfp(block, new_cell_idx, ii->itft);
+				itfp = cns_block_find_itfp(new_block, new_cell_idx, ii->itft);
 				*itfp = p;
 			}
 		}

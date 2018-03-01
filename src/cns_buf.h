@@ -18,7 +18,7 @@ struct cns_buf {
 	size_t      head;	/* index of the first unattached buf element */
 
 	/* Indexes and interfaces attached to each buf element.
-	   This is an array of cns_list* of cns_buf_ii. */
+	   This is an array of cns_list* of cns_buf_ii*. */
 	cns_list  **iis;
 	void       *buf;
 };
