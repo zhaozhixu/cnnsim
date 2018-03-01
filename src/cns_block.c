@@ -295,3 +295,67 @@ cns_block *cns_block_expand(cns_block *block, uint32_t multiple)
 	cns_block_free(block);
 	return new_block;
 }
+
+size_t cns_block_size(cns_block *block)
+{
+	return block->length * cns_size_of(block->dtype);
+}
+
+void cns_block_fill(cns_block *block, int itft, void *src, size_t n)
+{
+	void *dst;
+
+	if (cns_block_size(block) < n) {
+		fprintf(stderr, "ERROR: cns_block_fill: buffer overflow\n");
+		exit(EXIT_FAILURE);
+	}
+
+	switch (itft) {
+	case CNS_INPUT:
+		dst = block->ibuf->buf;
+		break;
+	case CNS_WEIGHT:
+		dst = block->wbuf->buf;
+		break;
+	case CNS_OUTPUT:
+		dst = block->obuf->buf;
+		break;
+	default:
+		fprintf(stderr,
+			"ERROR: cns_block_fill: unknown cns_interface_type %d\n",
+			itft);
+		exit(EXIT_FAILURE);
+	}
+
+	memmove(dst, src, n);
+}
+
+void cns_block_dump(cns_block *block, int itft, void *dst, size_t n)
+{
+	void *src;
+
+	if (cns_block_size(block) < n) {
+		fprintf(stderr,
+			"WARNING: cns_block_dump: requested size is larger than buffer size\n");
+		n = cns_block_size(block);
+	}
+
+	switch (itft) {
+	case CNS_INPUT:
+		src = block->ibuf->buf;
+		break;
+	case CNS_WEIGHT:
+		src = block->wbuf->buf;
+		break;
+	case CNS_OUTPUT:
+		src = block->obuf->buf;
+		break;
+	default:
+		fprintf(stderr,
+			"ERROR: cns_block_dump: unknown cns_interface_type %d\n",
+			itft);
+		exit(EXIT_FAILURE);
+	}
+
+	memmove(dst, src, n);
+}

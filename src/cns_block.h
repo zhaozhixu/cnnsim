@@ -39,6 +39,9 @@ extern "C" {
 			size_t idx2, int itft2);
 	void cns_block_link_io(cns_block *block, size_t idx, int itft);
 	cns_block *cns_block_expand(cns_block *block, uint32_t multiple);
+	size_t cns_block_size(cns_block *block);
+	void cns_block_fill(cns_block *block, int itft, void *src, size_t n);
+	void cns_block_dump(cns_block *block, int itft, void *dst, size_t n);
 
 #ifdef __cplusplus
 }

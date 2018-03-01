@@ -521,6 +521,52 @@ START_TEST(test_block_expand)
 }
 END_TEST
 
+START_TEST(test_block_size)
+{
+	ck_assert_int_eq(cns_block_size(block), size * sizeof(int8_t));
+}
+END_TEST
+
+START_TEST(test_block_fill)
+{
+	int i;
+
+	cns_block_fill(block, CNS_INPUT, input, size * sizeof(int8_t));
+	cns_block_fill(block, CNS_WEIGHT, weight, size * sizeof(int8_t));
+	cns_block_fill(block, CNS_OUTPUT, output, size * sizeof(int8_t));
+	for (i = 0; i < size; i++) {
+		ck_assert_int_eq(((int8_t *)block->ibuf->buf)[i], input[i]);
+		ck_assert_int_eq(((int8_t *)block->obuf->buf)[i], output[i]);
+		ck_assert_int_eq(((int8_t *)block->wbuf->buf)[i], weight[i]);
+	}
+}
+END_TEST
+
+START_TEST(test_block_dump)
+{
+	int i;
+	int8_t *in, *out, *wei;
+
+	in = (int8_t *)cns_alloc(size * sizeof(int8_t));
+	out = (int8_t *)cns_alloc(size * sizeof(int8_t));
+	wei = (int8_t *)cns_alloc(size * sizeof(int8_t));
+	cns_block_fill(block, CNS_INPUT, input, size * sizeof(int8_t));
+	cns_block_fill(block, CNS_WEIGHT, weight, size * sizeof(int8_t));
+	cns_block_fill(block, CNS_OUTPUT, output, size * sizeof(int8_t));
+	cns_block_dump(block, CNS_INPUT, in, size * sizeof(int8_t));
+	cns_block_dump(block, CNS_OUTPUT, out, size * sizeof(int8_t));
+	cns_block_dump(block, CNS_WEIGHT, wei, size * sizeof(int8_t));
+	for (i = 0; i < size; i++) {
+		ck_assert_int_eq(in[i], input[i]);
+		ck_assert_int_eq(out[i], output[i]);
+		ck_assert_int_eq(wei[i], weight[i]);
+	}
+	cns_free(in);
+	cns_free(out);
+	cns_free(wei);
+}
+END_TEST
+
 /* START_TEST(test_block_conv) */
 /* { */
 /* 	cns_block b; */
@@ -560,6 +606,9 @@ Suite *make_block_suite(void)
 	tcase_add_test(tc_block, test_block_link);
 	tcase_add_test(tc_block, test_block_find_itfp);
 	tcase_add_test(tc_block, test_block_expand);
+	tcase_add_test(tc_block, test_block_size);
+	tcase_add_test(tc_block, test_block_fill);
+	tcase_add_test(tc_block, test_block_dump);
 	suite_add_tcase(s, tc_block);
 
 	return s;
