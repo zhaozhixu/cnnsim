@@ -6,7 +6,7 @@
 
 typedef enum cns_bool_t cns_bool_t;
 enum cns_bool_t {
-	CNS_FLASE = 0,
+	CNS_FALSE = 0,
 	CNS_TRUE = 1
 };
 

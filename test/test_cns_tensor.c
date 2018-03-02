@@ -17,7 +17,7 @@ START_TEST(test_tensor)
 	}
 	cns_tensor *tensor = cns_tensor_create(4, dims, data, CNS_INT8);
 	/* cns_tensor_print(tensor, NULL); */
-	cns_tensor_free(tensor, CNS_FLASE);
+	cns_tensor_free(tensor, CNS_FALSE);
 }
 END_TEST
 

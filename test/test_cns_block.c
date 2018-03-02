@@ -61,6 +61,8 @@ START_TEST(test_block_dep_graph)
 	cns_block_add_dep(block, 3, 2);
 	cns_block_add_dep(block, 4, 3);
 
+	for (i = 0; i < block->length; i++)
+		block->cells[i].en = CNS_TRUE;
 	dep_g = cns_block_dep_graph(block);
 	res_num = cns_graph_topsort(dep_g, &res);
 	ck_assert_int_eq(res_num, 5);
@@ -220,7 +222,7 @@ START_TEST(test_block_expand)
 	cns_block_link_io(block, 4, CNS_OUTPUT);
 	cns_block_set_op(block, 4, cns_cell_op_assign_int8);
 
-	block = cns_block_expand(block, 1);
+	block = cns_block_expand(block, 1, 0);
 	ck_assert_int_eq(block->width, 8);
 	ck_assert_int_eq(block->dtype, CNS_INT8);
 	ck_assert_int_eq(block->length, 5);
@@ -314,32 +316,32 @@ START_TEST(test_block_expand)
 	ck_assert_int_eq(block->cells[2].index, 2);
 	ck_assert_int_eq(block->cells[3].index, 3);
 	ck_assert_int_eq(block->cells[4].index, 4);
-	ck_assert_int_eq(block->cells[0].en, CNS_TRUE);
-	ck_assert_int_eq(block->cells[1].en, CNS_TRUE);
-	ck_assert_int_eq(block->cells[2].en, CNS_TRUE);
-	ck_assert_int_eq(block->cells[3].en, CNS_TRUE);
-	ck_assert_int_eq(block->cells[4].en, CNS_TRUE);
+	ck_assert_int_eq(block->cells[0].en, CNS_FALSE);
+	ck_assert_int_eq(block->cells[1].en, CNS_FALSE);
+	ck_assert_int_eq(block->cells[2].en, CNS_FALSE);
+	ck_assert_int_eq(block->cells[3].en, CNS_FALSE);
+	ck_assert_int_eq(block->cells[4].en, CNS_FALSE);
 	ck_assert_ptr_eq(block->cells[0].op, cns_cell_op_mul_int8);
 	ck_assert_ptr_eq(block->cells[1].op, cns_cell_op_mul_int8);
 	ck_assert_ptr_eq(block->cells[2].op, cns_cell_op_add_int8);
 	ck_assert_ptr_eq(block->cells[3].op, cns_cell_op_relu_int8);
 	ck_assert_ptr_eq(block->cells[4].op, cns_cell_op_assign_int8);
 
-	block = cns_block_expand(block, 2);
+	block = cns_block_expand(block, 2, 2);
 	ck_assert_int_eq(block->width, 8);
 	ck_assert_int_eq(block->dtype, CNS_INT8);
-	ck_assert_int_eq(block->length, 10);
+	ck_assert_int_eq(block->length, 12);
 	ck_assert_int_eq(block->ibuf->dtype, CNS_INT8);
-	ck_assert_int_eq(block->ibuf->length, 10);
+	ck_assert_int_eq(block->ibuf->length, 12);
 	ck_assert_int_eq(block->ibuf->head, 4);
 	ck_assert_int_eq(block->wbuf->dtype, CNS_INT8);
-	ck_assert_int_eq(block->wbuf->length, 10);
+	ck_assert_int_eq(block->wbuf->length, 12);
 	ck_assert_int_eq(block->wbuf->head, 4);
 	ck_assert_int_eq(block->obuf->dtype, CNS_INT8);
-	ck_assert_int_eq(block->obuf->length, 10);
+	ck_assert_int_eq(block->obuf->length, 12);
 	ck_assert_int_eq(block->obuf->head, 2);
 	ck_assert_int_eq(block->cbuf->dtype, CNS_INT8);
-	ck_assert_int_eq(block->cbuf->length, 10);
+	ck_assert_int_eq(block->cbuf->length, 12);
 	ck_assert_int_eq(block->cbuf->head, 8);
 	ck_assert_int_eq(((cns_buf_ii *)block->ibuf->iis[0]->data)->idx, 0);
 	ck_assert_int_eq(((cns_buf_ii *)block->ibuf->iis[0]->data)->itft, CNS_INPUT);
@@ -419,11 +421,11 @@ START_TEST(test_block_expand)
 	ck_assert_int_eq(block->cells[2].index, 2);
 	ck_assert_int_eq(block->cells[3].index, 3);
 	ck_assert_int_eq(block->cells[4].index, 4);
-	ck_assert_int_eq(block->cells[0].en, CNS_TRUE);
-	ck_assert_int_eq(block->cells[1].en, CNS_TRUE);
-	ck_assert_int_eq(block->cells[2].en, CNS_TRUE);
-	ck_assert_int_eq(block->cells[3].en, CNS_TRUE);
-	ck_assert_int_eq(block->cells[4].en, CNS_TRUE);
+	ck_assert_int_eq(block->cells[0].en, CNS_FALSE);
+	ck_assert_int_eq(block->cells[1].en, CNS_FALSE);
+	ck_assert_int_eq(block->cells[2].en, CNS_FALSE);
+	ck_assert_int_eq(block->cells[3].en, CNS_FALSE);
+	ck_assert_int_eq(block->cells[4].en, CNS_FALSE);
 	ck_assert_ptr_eq(block->cells[0].op, cns_cell_op_mul_int8);
 	ck_assert_ptr_eq(block->cells[1].op, cns_cell_op_mul_int8);
 	ck_assert_ptr_eq(block->cells[2].op, cns_cell_op_add_int8);
@@ -508,11 +510,11 @@ START_TEST(test_block_expand)
 	ck_assert_int_eq(block->cells[7].index, 7);
 	ck_assert_int_eq(block->cells[8].index, 8);
 	ck_assert_int_eq(block->cells[9].index, 9);
-	ck_assert_int_eq(block->cells[5].en, CNS_TRUE);
-	ck_assert_int_eq(block->cells[6].en, CNS_TRUE);
-	ck_assert_int_eq(block->cells[7].en, CNS_TRUE);
-	ck_assert_int_eq(block->cells[8].en, CNS_TRUE);
-	ck_assert_int_eq(block->cells[9].en, CNS_TRUE);
+	ck_assert_int_eq(block->cells[5].en, CNS_FALSE);
+	ck_assert_int_eq(block->cells[6].en, CNS_FALSE);
+	ck_assert_int_eq(block->cells[7].en, CNS_FALSE);
+	ck_assert_int_eq(block->cells[8].en, CNS_FALSE);
+	ck_assert_int_eq(block->cells[9].en, CNS_FALSE);
 	ck_assert_ptr_eq(block->cells[5].op, cns_cell_op_mul_int8);
 	ck_assert_ptr_eq(block->cells[6].op, cns_cell_op_mul_int8);
 	ck_assert_ptr_eq(block->cells[7].op, cns_cell_op_add_int8);

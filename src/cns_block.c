@@ -29,7 +29,7 @@ cns_block *cns_block_create(size_t length, cns_dtype dtype, uint8_t width)
 		cells[i].index = i;
 		cells[i].deps = NULL;
 		cells[i].op = NULL;
-		cells[i].en = CNS_TRUE;
+		cells[i].en = CNS_FALSE;
 	}
 
 	return block;
@@ -46,10 +46,18 @@ void cns_block_free(cns_block *block)
 	cns_free(block);
 }
 
-void cns_block_run(cns_block *block) /* TODO: dep infomation */
+void cns_block_run(cns_block *block, cns_list *run_list)
 {
-	assert(block && block->cells);
-	size_t i;		/* TODO: need to be parallized */
+	assert(block && block->cells && run_list);
+	size_t i;
+	cns_list *rl, *sub_rl;
+
+	for (rl = run_list; rl; rl = rl->next) {
+		sub_rl = (cns_list *)rl->data;
+		/* TODO: need to be parallized */
+		for (; sub_rl; sub_rl = sub_rl->next)
+			cns_cell_run(&block->cells[(size_t)sub_rl->data]);
+	}
 	for (i = 0; i < block->length; i++)
 		cns_cell_run(&block->cells[i]);
 }
@@ -90,14 +98,23 @@ cns_graph *cns_block_dep_graph(cns_block *block)
 	cns_graph *g;
 	cns_list *l;
 	size_t i;
+	ssize_t dep;
 
 	g = cns_graph_create();
 	cns_graph_add(g, (void *)-1);
-	for (i = 0; i < block->length; i++)
-		cns_graph_add(g, (void *)i);
 	for (i = 0; i < block->length; i++) {
-		for (l = block->cells[i].deps; l; l = l->next)
-			cns_graph_link(g, (void *)l->data, (void *)i);
+		if (!block->cells[i].en)
+			continue;
+		cns_graph_add(g, (void *)i);
+	}
+	for (i = 0; i < block->length; i++) {
+		if (!block->cells[i].en)
+			continue;
+		for (l = block->cells[i].deps; l; l = l->next) {
+			dep = (ssize_t)l->data;
+			if (dep == -1 || block->cells[dep].en)
+				cns_graph_link(g, (void *)dep, (void *)i);
+		}
 	}
 
 	return g;
@@ -203,7 +220,7 @@ void cns_block_link_io(cns_block *block, size_t idx, int itft)
 	}
 }
 
-cns_block *cns_block_expand(cns_block *block, uint32_t multiple)
+cns_block *cns_block_expand(cns_block *block, int multiple, int extra)
 {
 	cns_buf_ii *ii;
 	cns_block *new_block;
@@ -214,17 +231,24 @@ cns_block *cns_block_expand(cns_block *block, uint32_t multiple)
 	size_t new_cell_idx;
 	size_t new_ibuf_idx, new_wbuf_idx, new_obuf_idx, new_cbuf_idx;
 	size_t idx;
-	uint32_t mul;
+	int mul;
 	void *p;
 	void **itfp;
 
-	if (multiple == 0) {
-		fprintf(stderr, "ERROR: cns_block_expand: multiple cannot be zero\n");
+	if (multiple <= 0) {
+		fprintf(stderr,
+			"ERROR: cns_block_expand: multiple must be positive\n");
 		exit(EXIT_FAILURE);
 	}
-	new_length = block->length * multiple;
+	if (extra < 0) {
+		fprintf(stderr,
+			"ERROR: cns_block_expand: extra can't be negative\n");
+		exit(EXIT_FAILURE);
+	}
+	new_length = block->length * multiple + extra;
 	if (new_length > CNS_MAX_CELLS) {
-		fprintf(stderr, "ERROR: cns_block_expand: exceeded maximum CNS_MAX_CELLS\n");
+		fprintf(stderr,
+			"ERROR: cns_block_expand: exceed maximum CNS_MAX_CELLS\n");
 		exit(EXIT_FAILURE);
 	}
 	new_block = cns_block_create(new_length, block->dtype, block->width);
@@ -358,4 +382,52 @@ void cns_block_dump(cns_block *block, int itft, void *dst, size_t n)
 	}
 
 	memmove(dst, src, n);
+}
+
+cns_list *cns_block_en_expand(cns_block *block, cns_list *ens, int base,
+			int multiple, cns_list *extras)
+{
+	cns_list *new_ens;
+	size_t new_len;
+	size_t len;
+	size_t new_idx;
+	size_t idx;
+	cns_list *l;
+	int m;
+
+	if (base <= 0) {
+		fprintf(stderr,
+			"ERROR: cns_block_en_expand: base must be positive\n");
+		exit(EXIT_FAILURE);
+	}
+	if (multiple <= 0) {
+		fprintf(stderr,
+			"ERROR: cns_block_en_expand: multiple must be positive\n");
+		exit(EXIT_FAILURE);
+	}
+	len = cns_list_length(ens);
+	if (len > base) {
+		fprintf(stderr,
+			"ERROR: cns_block_en_expand: ens length larger than base\n");
+		exit(EXIT_FAILURE);
+	}
+	new_len = len * multiple + cns_list_length(extras);
+	if (new_len > block->length) {
+		fprintf(stderr,
+			"ERROR: cns_block_en_expand: exceed block length\n");
+		exit(EXIT_FAILURE);
+	}
+
+	new_ens = NULL;
+	for (m = 0; m < multiple; m++) {
+		for (l = ens; l; l = l->next) {
+			idx = (size_t)l->data;
+			new_idx = m * base + idx;
+			new_ens = cns_list_append(new_ens, (void *)new_idx);
+		}
+	}
+	for (l = extras; l; l = l->next)
+		new_ens = cns_list_append(new_ens, l->data);
+
+	return new_ens;
 }

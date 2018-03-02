@@ -177,3 +177,24 @@ int cns_list_index_custom(cns_list *list, void *data, cns_cmp_func cmp)
 			return i;
 	return -1;
 }
+
+int cns_list_length(cns_list *list)
+{
+	cns_list *l;
+	int len;
+
+	for (len = 0, l = list; l; l = l->next, len++)
+		;
+	return len;
+}
+
+cns_list *cns_list_from_array_size_t(size_t *array, size_t n)
+{
+	cns_list *res;
+	size_t i;
+
+	res = NULL;
+	for (i = 0; i < n; i++)
+		res = cns_list_append(res, (void *)array[i]);
+	return res;
+}

@@ -172,6 +172,37 @@ START_TEST(test_list_index)
 }
 END_TEST
 
+START_TEST(test_list_length)
+{
+	cns_list *l;
+	int data;
+
+	l = NULL;
+	data = 0;
+	ck_assert_int_eq(cns_list_length(l), 0);
+	l = cns_list_append(l, &data);
+	ck_assert_int_eq(cns_list_length(l), 1);
+	ck_assert_int_eq(cns_list_length(list), 5);
+}
+END_TEST
+
+START_TEST(test_list_from_array_size_t)
+{
+	cns_list *l;
+	size_t i;
+	size_t array[3];
+
+	for (i = 0; i < 3; i++)
+		array[i] = i;
+	l = cns_list_from_array_size_t(NULL, 0);
+	ck_assert_ptr_eq(l, NULL);
+	l = cns_list_from_array_size_t(array, 3);
+	for (i = 0; i < 3; i++) {
+		ck_assert_int_eq((size_t)cns_list_nth_data(l, i), i);
+	}
+}
+END_TEST
+
 Suite *make_list_suite(void)
 {
 	Suite *s;
@@ -187,6 +218,8 @@ Suite *make_list_suite(void)
 	tcase_add_test(tc_list, test_list_find_custom);
 	tcase_add_test(tc_list, test_list_position);
 	tcase_add_test(tc_list, test_list_index);
+	tcase_add_test(tc_list, test_list_length);
+	tcase_add_test(tc_list, test_list_from_array_size_t);
 	suite_add_tcase(s, tc_list);
 
 	return s;

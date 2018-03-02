@@ -152,7 +152,7 @@ void cns_graph_free_topsortlist(cns_list *list)
 	cns_list_free(list);
 }
 
-int cns_graph_topsort(cns_graph *graph, cns_list **res)
+int cns_graph_topsort(cns_graph *graph, cns_list **run_list)
 {
 	cns_list *nodes;
 	cns_list *res_list;
@@ -207,7 +207,7 @@ int cns_graph_topsort(cns_graph *graph, cns_list **res)
 
 	cns_queue_free(queue);
 	cns_graph_free(g);
-	*res = res_list;
+	*run_list = res_list;
 
 	if (node_count != graph->size - cns_graph_num_outlier(graph))
 		return -1;	/* graph has a cycle */
