@@ -9,7 +9,7 @@ struct cns_step {
 	cns_block    *block;
 	cns_list     *ens;
 	cns_list     *run_list;
-	int           run_times;
+	int           run_rounds;
 	cns_block_op  op_pre;
 	void         *data_pre;
 	cns_block_op  op_post;
@@ -23,6 +23,7 @@ extern "C" {
 	cns_step *cns_step_create(cns_block *block, cns_list *ens, cns_block_op op_pre,
 				void *data_pre, cns_block_op op_post, void *data_post);
 	void cns_step_free(cns_step *step);
+	void cns_step_run(cns_step *step);
 
 #ifdef __cplusplus
 }

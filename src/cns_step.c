@@ -19,8 +19,8 @@ cns_step *cns_step_create(cns_block *block, cns_list *ens, cns_block_op op_pre,
 	for (l = ens; l; l = l->next)
 		cns_block_set_en(block, (size_t)l->data, CNS_TRUE);
 	dep_graph = cns_block_dep_graph(block);
-	step->run_times = cns_graph_topsort(dep_graph, &step->run_list);
-	if (step->run_times < 0) {
+	step->run_rounds = cns_graph_topsort(dep_graph, &step->run_list);
+	if (step->run_rounds < 0) {
 		fprintf(stderr,
 			"ERROR: cns_step_create: dependency graph has a cycle\n");
 		exit(EXIT_FAILURE);
@@ -37,4 +37,11 @@ void cns_step_free(cns_step *step)
 {
 	cns_graph_free_topsortlist(step->run_list);
 	cns_free(step);
+}
+
+void cns_step_run(cns_step *step)
+{
+	step->op_pre(step->block, step->data_pre);
+	cns_block_run(step->block, step->run_list);
+	step->op_post(step->block, step->data_post);
 }

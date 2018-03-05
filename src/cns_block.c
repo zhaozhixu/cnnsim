@@ -49,17 +49,19 @@ void cns_block_free(cns_block *block)
 void cns_block_run(cns_block *block, cns_list *run_list)
 {
 	assert(block && block->cells && run_list);
-	size_t i;
+	ssize_t idx;
 	cns_list *rl, *sub_rl;
 
 	for (rl = run_list; rl; rl = rl->next) {
 		sub_rl = (cns_list *)rl->data;
 		/* TODO: need to be parallized */
-		for (; sub_rl; sub_rl = sub_rl->next)
-			cns_cell_run(&block->cells[(size_t)sub_rl->data]);
+		for (; sub_rl; sub_rl = sub_rl->next) {
+			idx = (ssize_t)sub_rl->data;
+			if (idx < 0)
+				continue;
+			cns_cell_run(&block->cells[idx]);
+		}
 	}
-	for (i = 0; i < block->length; i++)
-		cns_cell_run(&block->cells[i]);
 }
 
 void cns_block_set_data(cns_block *block, size_t index,

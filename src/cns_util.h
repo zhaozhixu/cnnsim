@@ -1,6 +1,7 @@
 #ifndef _CNS_UTIL_H_
 #define _CNS_UTIL_H_
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
 
@@ -29,6 +30,7 @@ enum cns_interface_type {
 };
 
 typedef int (*cns_cmp_func)(void *, void *);
+typedef void (* cns_fprint_func) (FILE *fp, void *data);
 
 #define cns_free free
 

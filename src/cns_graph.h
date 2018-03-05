@@ -1,8 +1,10 @@
 #ifndef _CNS_GRAPH_H_
 #define _CNS_GRAPH_H_
 
+#include <stdio.h>
 #include <stdlib.h>
 #include "cns_list.h"
+#include "cns_util.h"
 
 typedef struct cns_graph_node cns_graph_node;
 struct cns_graph_node {
@@ -34,6 +36,7 @@ extern "C" {
 	int cns_graph_num_outlier(cns_graph *graph);
 	void cns_graph_free_topsortlist(cns_list *list);
 	int cns_graph_topsort(cns_graph *graph, cns_list **res);
+	void cns_graph_fprint(FILE *fp, cns_graph *graph, cns_fprint_func print_func);
 
 #ifdef __cplusplus
 }

@@ -569,37 +569,68 @@ START_TEST(test_block_dump)
 }
 END_TEST
 
-/* START_TEST(test_block_conv) */
+/* static void graph_fprint(FILE *fp, void *data) */
 /* { */
-/* 	cns_block b; */
-/* 	size_t b_size; */
-/* 	size_t i; */
-
-/* 	b_size = 9 + 9 + 9 + 1 + 1; */
-/* 	b = cns_block_create(b_size, CNS_INT8, 8); */
-/* 	for (i = 0; i < 9; i++) { /\* 9 multipliers *\/ */
-/* 		cns_block_link_io(b, i, CNS_INPUT); */
-/* 		cns_block_link_io(b, i, CNS_WEIGHT); */
-/* 		cns_block_set_op(b, i, cns_cell_op_mul_int8); */
-/* 	} */
-/* 	for (i = 9; i < 18; i++) { /\* 9 adders *\/ */
-/* 		cns_block_link(b, i, CNS_INPUT, i-9, CNS_OUTPUT); */
-/* 		cns_block_link(b, i, CNS_WEIGHT, i, CNS_OUTPUT); */
-/* 		cns_block_set_op(b, i, cns_cell_op_add_int8); */
-/* 	} */
-/* 	for (i = 18; i < 27; i++) { /\* 9 relus *\/ */
-/* 		cns_block_link(b, i, CNS_INPUT, i-9, CNS_OUTPUT); */
-/* 		cns_block_set_op(b, i, cns_cell_op_relu_int8); */
-/* 	} */
+/* 	fprintf(fp, "%ld", (ssize_t)data); */
 /* } */
-/* END_TEST */
+
+START_TEST(test_block_run)
+{
+	cns_block *b;
+	cns_list *run_list;
+	cns_graph *dep_graph;
+	size_t b_size;
+	size_t i;
+
+	b_size = 9 + 9 + 9;
+	b = cns_block_create(b_size, CNS_INT8, 8);
+	for (i = 0; i < 9; i++) { /* 9 multipliers */
+		cns_block_link_io(b, i, CNS_INPUT);
+		cns_block_link_io(b, i, CNS_WEIGHT);
+		cns_block_set_op(b, i, cns_cell_op_mul_int8);
+	}
+	for (i = 9; i < 18; i++) { /* 9 adders */
+		cns_block_link(b, i, CNS_INPUT, i-9, CNS_OUTPUT);
+		cns_block_link(b, i, CNS_WEIGHT, i, CNS_OUTPUT);
+		cns_block_set_op(b, i, cns_cell_op_add_int8);
+	}
+	/* for (i = 18; i < 27; i++) { /\* 9 relus *\/ */
+	/* 	cns_block_link(b, i, CNS_INPUT, i-9, CNS_OUTPUT); */
+	/* 	cns_block_set_op(b, i, cns_cell_op_relu_int8); */
+	/* } */
+	for (i = 18; i < 27; i++) { /* 9 outputs */
+		cns_block_link(b, i, CNS_INPUT, i-9, CNS_OUTPUT);
+		cns_block_link_io(b, i, CNS_OUTPUT);
+		cns_block_set_op(b, i, cns_cell_op_assign_int8);
+	}
+
+	for (i = 0; i < b_size; i++) {
+		((int8_t *)b->ibuf->buf)[i] = i;
+		((int8_t *)b->wbuf->buf)[i] = i;
+		((int8_t *)b->cbuf->buf)[i] = 1;
+		b->cells[i].en = CNS_TRUE;
+	}
+
+	dep_graph = cns_block_dep_graph(b);
+	cns_graph_topsort(dep_graph, &run_list);
+	/* cns_graph_fprint(stdout, dep_graph, graph_fprint); */
+	cns_block_run(b, run_list);
+
+	for (i = 0; i < 9; i++) {
+		ck_assert_int_eq(((int8_t *)b->obuf->buf)[i], i*i+1);
+	}
+
+	cns_graph_free(dep_graph);
+	cns_graph_free_topsortlist(run_list);
+}
+END_TEST
 
 Suite *make_block_suite(void)
 {
 	Suite *s;
-	s = suite_create("block");
-
 	TCase *tc_block;
+
+	s = suite_create("block");
 	tc_block = tcase_create("block");
 	tcase_add_checked_fixture(tc_block, setup, teardown);
 	tcase_add_test(tc_block, test_block_set_op);
@@ -611,6 +642,7 @@ Suite *make_block_suite(void)
 	tcase_add_test(tc_block, test_block_size);
 	tcase_add_test(tc_block, test_block_fill);
 	tcase_add_test(tc_block, test_block_dump);
+	tcase_add_test(tc_block, test_block_run);
 	suite_add_tcase(s, tc_block);
 
 	return s;

@@ -213,3 +213,23 @@ int cns_graph_topsort(cns_graph *graph, cns_list **run_list)
 		return -1;	/* graph has a cycle */
 	return res_size;
 }
+
+void cns_graph_fprint(FILE *fp, cns_graph *graph, cns_fprint_func print_func)
+{
+	cns_list *nodes;
+	cns_list *adjs;
+	cns_graph_node *node;
+	cns_graph_node *adj;
+
+	for (nodes = graph->nodes; nodes; nodes = nodes->next) {
+		node = nodes->data;
+		print_func(fp, node->data);
+		fprintf(fp, "->");
+		for (adjs = node->adj_nodes; adjs; adjs = adjs->next) {
+			adj = adjs->data;
+			print_func(fp, adj->data);
+			fprintf(fp, " ");
+		}
+		fprintf(fp, "\n");
+	}
+}
