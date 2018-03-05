@@ -70,7 +70,7 @@ void *cns_buf_addr(cns_buf *buf, int buf_idx)
 
 void *cns_buf_attach(cns_buf *buf, size_t buf_idx, size_t idx, int itft)
 {
-	assert(buf_idx <= buf->tail);
+	assert(buf_idx <= buf->head);
 	cns_buf_ii *ii;
 
 	ii = cns_buf_ii_create(idx, itft);
@@ -81,7 +81,7 @@ void *cns_buf_attach(cns_buf *buf, size_t buf_idx, size_t idx, int itft)
 
 void cns_buf_detach(cns_buf *buf, size_t buf_idx, size_t idx, int itft)
 {
-	assert(buf_idx <= buf->tail);
+	assert(buf_idx <= buf->head);
 	cns_buf_ii *ii;
 	int found_idx;
 
