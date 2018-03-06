@@ -17,6 +17,7 @@ int main(int argc, char **argv)
 	srunner_add_suite(sr, make_buf_suite());
 	srunner_add_suite(sr, make_block_suite());
 	srunner_add_suite(sr, make_step_suite());
+	srunner_add_suite(sr, make_sch_suite());
 
 	srunner_set_xml (sr, "result/check_output.xml");
 	srunner_run_all(sr, CK_NORMAL);

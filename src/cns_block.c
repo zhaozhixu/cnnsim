@@ -222,6 +222,26 @@ void cns_block_link_io(cns_block *block, size_t idx, int itft)
 	}
 }
 
+void cns_block_link_c(cns_block *block, size_t idx, int itft)
+{
+	switch (itft) {
+	case CNS_INPUT:
+		block->cells[idx].data.input = cns_buf_append(block->cbuf, idx, itft);
+		break;
+	case CNS_OUTPUT:
+		block->cells[idx].data.output = cns_buf_append(block->cbuf, idx, itft);
+		break;
+	case CNS_WEIGHT:
+		block->cells[idx].data.weight = cns_buf_append(block->cbuf, idx, itft);
+		break;
+	default:
+		fprintf(stderr,
+			"ERROR: cns_block_link_c: unknown cns_interface_type %d\n",
+			itft);
+		exit(EXIT_FAILURE);
+	}
+}
+
 cns_block *cns_block_expand(cns_block *block, int multiple, int extra)
 {
 	cns_buf_ii *ii;

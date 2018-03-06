@@ -40,6 +40,7 @@ extern "C" {
 	void cns_block_link(cns_block *block, size_t idx1, int itft1,
 			size_t idx2, int itft2);
 	void cns_block_link_io(cns_block *block, size_t idx, int itft);
+	void cns_block_link_c(cns_block *block, size_t idx, int itft);
 	cns_block *cns_block_expand(cns_block *block, int multiple, int extra);
 	size_t cns_block_size(cns_block *block);
 	void cns_block_fill(cns_block *block, int itft, void *src, size_t n);

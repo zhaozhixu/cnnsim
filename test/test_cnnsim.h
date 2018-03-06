@@ -15,6 +15,7 @@ extern "C" {
 	Suite *make_graph_suite(void);
 	Suite *make_buf_suite(void);
 	Suite *make_step_suite(void);
+	Suite *make_sch_suite(void);
 
 #ifdef _cplusplus
 }
