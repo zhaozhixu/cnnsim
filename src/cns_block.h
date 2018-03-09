@@ -3,20 +3,23 @@
 
 #include "cns_util.h"
 #include "cns_cell.h"
-#include "cns_buf.h"
+#include "cns_reg.h"
+#include "cns_wire.h"
 #include "cns_graph.h"
 #include "cns_list.h"
+#include "cns_ii.h"
 
 typedef struct cns_block cns_block;
 struct cns_block {
 	uint8_t         width;	/* data width (for cns_block_expand) */
 	cns_dtype       dtype;	/* data type (for cns_block_expand) */
-	size_t          length;	/* number of cells */
+	size_t          len;	/* number of cells */
 	cns_cell       *cells;	/* array of cells */
-	cns_buf        *ibuf;	/* input buffer */
-	cns_buf        *obuf;	/* output buffer */
-	cns_buf        *wbuf;	/* weight buffer */
-	cns_buf        *cbuf;	/* chore buffer */
+	cns_reg_buf    *rbuf_i;	/* input buffer */
+	cns_reg_buf    *rbuf_o;	/* output buffer */
+	cns_reg_buf    *rbuf_w;	/* weight buffer */
+	cns_reg_buf    *rbuf_c;	/* chore buffer */
+	cns_wire_buf   *wbuf_c;	/* chore buffer of wire */
 };
 
 typedef void (* cns_block_op) (cns_block *block, void *data);
@@ -25,7 +28,7 @@ typedef void (* cns_block_op) (cns_block *block, void *data);
 extern "C" {
 #endif
 
-	cns_block *cns_block_create(size_t length, cns_dtype dtype, uint8_t width);
+	cns_block *cns_block_create(size_t len, cns_dtype dtype, uint8_t width);
 	void cns_block_free(cns_block *block);
 	void cns_block_run(cns_block *block, cns_list *run_list);
 	void cns_block_set_data(cns_block *block, size_t index,
@@ -39,8 +42,9 @@ extern "C" {
 	void **cns_block_find_itfp(cns_block *block, size_t idx, int itft);
 	void cns_block_link(cns_block *block, size_t idx1, int itft1,
 			size_t idx2, int itft2);
-	void cns_block_link_io(cns_block *block, size_t idx, int itft);
-	void cns_block_link_c(cns_block *block, size_t idx, int itft);
+	void cns_block_link_io(cns_block *block, size_t ori, cns_list *iis,
+			int itft);
+	void cns_block_link_c(cns_block *block, size_t ori, cns_list *iis);
 	cns_block *cns_block_expand(cns_block *block, int multiple, int extra);
 	size_t cns_block_size(cns_block *block);
 	void cns_block_fill(cns_block *block, int itft, void *src, size_t n);

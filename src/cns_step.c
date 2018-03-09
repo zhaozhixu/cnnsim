@@ -93,9 +93,9 @@ void cns_step_cpy_iw(cns_block *block, void *data)
 	cns_step_iwbuf *iwbuf;
 
 	iwbuf = (cns_step_iwbuf *)data;
-	memmove(block->ibuf->buf, iwbuf->input,
+	memmove(block->rbuf_i->buf, iwbuf->input,
 		cns_size_of(iwbuf->dtype)*iwbuf->input_len);
-	memmove(block->wbuf->buf, iwbuf->weight,
+	memmove(block->rbuf_w->buf, iwbuf->weight,
 		cns_size_of(iwbuf->dtype)*iwbuf->weight_len);
 }
 
@@ -104,6 +104,6 @@ void cns_step_cpy_o(cns_block *block, void *data)
 	cns_step_obuf *obuf;
 
 	obuf = (cns_step_obuf *)data;
-	memmove(obuf->output, block->obuf->buf,
-		cns_size_of(obuf->dtype) * obuf->output_len);
+	memmove(obuf->output, block->rbuf_o->buf,
+		cns_size_of(obuf->dtype)*obuf->output_len);
 }

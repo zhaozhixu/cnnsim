@@ -2,25 +2,26 @@
 #include <string.h>
 #include "cns_block.h"
 
-cns_block *cns_block_create(size_t length, cns_dtype dtype, uint8_t width)
+cns_block *cns_block_create(size_t len, cns_dtype dtype, uint8_t width)
 {
-	assert(length > 0 && length <= CNS_MAX_CELLS);
+	assert(len > 0 && len <= CNS_MAX_CELLS);
 	cns_cell *cells;
 	cns_block *block;
 	size_t i;
 
 	block = (cns_block *)cns_alloc(sizeof(cns_block));
-	block->ibuf = cns_buf_create(length, dtype);
-	block->obuf = cns_buf_create(length, dtype);
-	block->wbuf = cns_buf_create(length, dtype);
-	block->cbuf = cns_buf_create(length, dtype);
-	cells = (cns_cell *)cns_alloc(sizeof(cns_cell) * length);
+	block->rbuf_i = cns_reg_buf_create(len, dtype);
+	block->rbuf_o = cns_reg_buf_create(len, dtype);
+	block->rbuf_w = cns_reg_buf_create(len, dtype);
+	block->rbuf_c = cns_reg_buf_create(len, dtype);
+	block->wbuf_c = cns_wire_buf_create(len, dtype);
+	cells = (cns_cell *)cns_alloc(sizeof(cns_cell) * len);
 	block->cells = cells;
-	block->length = length;
+	block->len = len;
 	block->dtype = dtype;
 	block->width = width;
 
-	for (i = 0; i < length; i++) {
+	for (i = 0; i < len; i++) {
 		cells[i].data.width = width;
 		cells[i].data.dtype = dtype;
 		cells[i].data.input = NULL;
@@ -38,10 +39,11 @@ cns_block *cns_block_create(size_t length, cns_dtype dtype, uint8_t width)
 void cns_block_free(cns_block *block)
 {
 	assert(block);
-	cns_buf_free(block->ibuf);
-	cns_buf_free(block->obuf);
-	cns_buf_free(block->wbuf);
-	cns_buf_free(block->cbuf);
+	cns_reg_buf_free(block->rbuf_i);
+	cns_reg_buf_free(block->rbuf_o);
+	cns_reg_buf_free(block->rbuf_w);
+	cns_reg_buf_free(block->rbuf_c);
+	cns_wire_buf_free(block->wbuf_c);
 	cns_free(block->cells);
 	cns_free(block);
 }
@@ -52,6 +54,8 @@ void cns_block_run(cns_block *block, cns_list *run_list)
 	ssize_t idx;
 	cns_list *rl, *sub_rl;
 
+	memset(block->rbuf_c->buf, 0, cns_size_of(block->dtype)*block->len);
+	memset(block->wbuf_c->buf, 0, cns_size_of(block->dtype)*block->len);
 	for (rl = run_list; rl; rl = rl->next) {
 		sub_rl = (cns_list *)rl->data;
 		/* TODO: need to be parallized */
@@ -104,12 +108,12 @@ cns_graph *cns_block_dep_graph(cns_block *block)
 
 	g = cns_graph_create();
 	cns_graph_add(g, (void *)-1);
-	for (i = 0; i < block->length; i++) {
+	for (i = 0; i < block->len; i++) {
 		if (!block->cells[i].en)
 			continue;
 		cns_graph_add(g, (void *)i);
 	}
-	for (i = 0; i < block->length; i++) {
+	for (i = 0; i < block->len; i++) {
 		if (!block->cells[i].en)
 			continue;
 		for (l = block->cells[i].deps; l; l = l->next) {
@@ -126,7 +130,7 @@ void **cns_block_find_itfp(cns_block *block, size_t idx, int itft)
 {
 	void **itfp;
 
-	if (idx >= block->length) {
+	if (idx >= block->len) {
 		fprintf(stderr,
 			"ERROR: cns_block_find_itfp: cell array out of bound\n");
 		exit(EXIT_FAILURE);
@@ -156,7 +160,7 @@ void cns_block_link(cns_block *block, size_t idx1, int itft1, size_t idx2, int i
 {
 	void **itfp1;
 	void **itfp2;
-	int buf_idx, buf_idx1, buf_idx2;
+	int b_idx, b_idx1, b_idx2;
 
 	itfp1 = cns_block_find_itfp(block, idx1, itft1);
 	itfp2 = cns_block_find_itfp(block, idx2, itft2);
@@ -169,13 +173,13 @@ void cns_block_link(cns_block *block, size_t idx1, int itft1, size_t idx2, int i
 		cns_block_add_dep(block, idx1, idx2);
 
 	if (*itfp1 && !*itfp2) {
-		buf_idx = cns_buf_index(block->cbuf, *itfp1);
-		*itfp2 = cns_buf_attach(block->cbuf, buf_idx, idx2, itft2);
+		b_idx = cns_wire_buf_index(block->wbuf_c, *itfp1);
+		*itfp2 = cns_wire_buf_link(block->wbuf_c, b_idx, idx2, itft2);
 		return;
 	}
 	if (!*itfp1 && *itfp2) {
-		buf_idx = cns_buf_index(block->cbuf, *itfp2);
-		*itfp1 = cns_buf_attach(block->cbuf, buf_idx, idx1, itft1);
+		b_idx = cns_wire_buf_index(block->wbuf_c, *itfp2);
+		*itfp1 = cns_wire_buf_link(block->wbuf_c, b_idx, idx1, itft1);
 		return;
 	}
 	/* Shouldn't enter this branch in practice,
@@ -185,34 +189,38 @@ void cns_block_link(cns_block *block, size_t idx1, int itft1, size_t idx2, int i
 			"WARNING: cns_block_link: linking two attached interfaces\n");
 		if (*itfp1 == *itfp2)
 			return;
-		buf_idx1 = cns_buf_index(block->cbuf, *itfp1);
-		buf_idx2 = cns_buf_index(block->cbuf, *itfp2);
-		if (buf_idx1 < buf_idx2) {
-			*itfp2 = cns_buf_attach(block->cbuf, buf_idx1, idx2, itft2);
-			cns_buf_detach(block->cbuf, buf_idx2, idx2, itft2);
+		b_idx1 = cns_wire_buf_index(block->wbuf_c, *itfp1);
+		b_idx2 = cns_wire_buf_index(block->wbuf_c, *itfp2);
+		if (b_idx1 < b_idx2) {
+			*itfp2 = cns_wire_buf_link(block->wbuf_c, b_idx1, idx2, itft2);
+			cns_wire_buf_unlink(block->wbuf_c, b_idx2, idx2, itft2);
 		} else {
-			*itfp1 = cns_buf_attach(block->cbuf, buf_idx2, idx1, itft1);
-			cns_buf_detach(block->cbuf, buf_idx1, idx1, itft1);
+			*itfp1 = cns_wire_buf_link(block->wbuf_c, b_idx2, idx1, itft1);
+			cns_wire_buf_unlink(block->wbuf_c, b_idx1, idx1, itft1);
 		}
 		return;
 	}
-	*itfp1 = cns_buf_append(block->cbuf, idx1, itft1);
-	*itfp2 = cns_buf_attach(block->cbuf, block->cbuf->head-1, idx2, itft2);
+	*itfp1 = cns_wire_buf_append(block->wbuf_c, idx1, itft1);
+	*itfp2 = cns_wire_buf_link(block->wbuf_c, block->wbuf_c->head-1, idx2, itft2);
 }
 
-void cns_block_link_io(cns_block *block, size_t idx, int itft)
+void cns_block_link_io(cns_block *block, size_t ori, cns_list *iis, int itft)
 {
+	int i;
+	cns_list *l;
+	cns_ii *ii;
+	void *buf;
+	void **itfp;
+
 	switch (itft) {
 	case CNS_INPUT:
-		block->cells[idx].data.input = cns_buf_append(block->ibuf, idx, itft);
-		cns_block_add_dep(block, idx, -1);
+		buf = cns_reg_buf_link(block->rbuf_i, ori, iis);
 		break;
 	case CNS_OUTPUT:
-		block->cells[idx].data.output = cns_buf_append(block->obuf, idx, itft);
+		buf = cns_reg_buf_link(block->rbuf_o, ori, iis);
 		break;
 	case CNS_WEIGHT:
-		block->cells[idx].data.weight = cns_buf_append(block->wbuf, idx, itft);
-		cns_block_add_dep(block, idx, -1);
+		buf = cns_reg_buf_link(block->rbuf_w, ori, iis);
 		break;
 	default:
 		fprintf(stderr,
@@ -220,38 +228,64 @@ void cns_block_link_io(cns_block *block, size_t idx, int itft)
 			itft);
 		exit(EXIT_FAILURE);
 	}
+
+	for (l = iis, i = 0; l; l = l->next, i++) {
+		ii = (cns_ii *)l->data;
+		itfp = cns_block_find_itfp(block, ii->idx, ii->itft);
+		*itfp = cns_pointer_add(buf, i, block->dtype);
+		if (itft == CNS_INPUT || itft == CNS_WEIGHT)
+			cns_block_add_dep(block, ii->idx, -1);
+	}
 }
 
-void cns_block_link_c(cns_block *block, size_t idx, int itft)
+void cns_block_link_c(cns_block *block, size_t ori, cns_list *iis)
 {
-	switch (itft) {
-	case CNS_INPUT:
-		block->cells[idx].data.input = cns_buf_append(block->cbuf, idx, itft);
-		break;
-	case CNS_OUTPUT:
-		block->cells[idx].data.output = cns_buf_append(block->cbuf, idx, itft);
-		break;
-	case CNS_WEIGHT:
-		block->cells[idx].data.weight = cns_buf_append(block->cbuf, idx, itft);
-		break;
-	default:
-		fprintf(stderr,
-			"ERROR: cns_block_link_c: unknown cns_interface_type %d\n",
-			itft);
-		exit(EXIT_FAILURE);
+	void *buf;
+	cns_list *l;
+	cns_ii *ii;
+	int i;
+
+	buf = cns_reg_buf_link(block->rbuf_c, ori, iis);
+	for (l = iis, i = 0; l; l = l->next) {
+		ii = (cns_ii *)l->data;
+		itfp = cns_block_find_itfp(block, ii->idx, ii->itft);
+		*itfp = cns_pointer_add(buf, i, block->dtype);
+	}
+}
+
+static void expand_reg(cns_reg_buf *rbuf, cns_reg_buf *new_rbuf, int multiple)
+{
+	cns_regs *reg;
+	cns_list *regs;
+	cns_ii *ii;
+	cns_list *iis;
+	cns_list *new_iis;
+	int mul;
+
+	for (regs = rbuf->regs; regs; regs = regs->next) {
+		reg = (cns_reg *)regs->data;
+		for (mul = 0; mul < multiple; mul++) {
+			for (iis = reg->iis; iis; iis = iis->next) {
+				ii = (cns_ii *)iis->data;
+				new_iis = cns_iis_append(new_iis,
+							mul*rbuf->len+ii->idx,
+							ii->itft);
+			}
+		}
+		cns_reg_buf_link(new_rbuf, mul*rbuf->len+reg->ori, new_iis);
 	}
 }
 
 cns_block *cns_block_expand(cns_block *block, int multiple, int extra)
 {
-	cns_buf_ii *ii;
+	cns_ii *ii;
 	cns_block *new_block;
 	cns_list *iis;
 	cns_list *deps;
 	ssize_t dep;
-	size_t new_length;
+	size_t new_len;
 	size_t new_cell_idx;
-	size_t new_ibuf_idx, new_wbuf_idx, new_obuf_idx, new_cbuf_idx;
+	size_t new_wbc_idx;
 	size_t idx;
 	int mul;
 	void *p;
@@ -267,18 +301,18 @@ cns_block *cns_block_expand(cns_block *block, int multiple, int extra)
 			"ERROR: cns_block_expand: extra can't be negative\n");
 		exit(EXIT_FAILURE);
 	}
-	new_length = block->length * multiple + extra;
-	if (new_length > CNS_MAX_CELLS) {
+	new_len = block->len * multiple + extra;
+	if (new_len > CNS_MAX_CELLS) {
 		fprintf(stderr,
 			"ERROR: cns_block_expand: exceed maximum CNS_MAX_CELLS\n");
 		exit(EXIT_FAILURE);
 	}
-	new_block = cns_block_create(new_length, block->dtype, block->width);
+	new_block = cns_block_create(new_len, block->dtype, block->width);
 
-	/* iterate over new cells and new block bufs */
 	for (mul = 0; mul < multiple; mul++) {
-		for (idx = 0; idx < block->length; idx++) {
-			new_cell_idx = mul * block->length + idx;
+		for (idx = 0; idx < block->len; idx++) {
+			/* expand cells */
+			new_cell_idx = mul * block->len + idx;
 			cns_block_set_op(new_block, new_cell_idx, block->cells[idx].op);
 			cns_block_set_en(new_block, new_cell_idx, block->cells[idx].en);
 			for (deps = block->cells[idx].deps; deps; deps = deps->next) {
@@ -288,55 +322,26 @@ cns_block *cns_block_expand(cns_block *block, int multiple, int extra)
 					continue;
 				}
 				cns_block_add_dep(new_block, new_cell_idx,
-						mul * block->length + dep);
+						mul * block->len + dep);
 			}
 
-			new_ibuf_idx = new_block->ibuf->head;
-			if (block->ibuf->iis[idx])
-				new_block->ibuf->head++;
-			for (iis = block->ibuf->iis[idx]; iis; iis = iis->next) {
-				ii = (cns_buf_ii *)iis->data;
-				new_cell_idx = mul * block->length + ii->idx;
-				p = cns_buf_attach(new_block->ibuf,
-					new_ibuf_idx, new_cell_idx, ii->itft);
-				itfp = cns_block_find_itfp(new_block, new_cell_idx, ii->itft);
-				*itfp = p;
-			}
-			new_wbuf_idx = new_block->wbuf->head;
-			if (block->wbuf->iis[idx])
-				new_block->wbuf->head++;
-			for (iis = block->wbuf->iis[idx]; iis; iis = iis->next) {
-				ii = (cns_buf_ii *)iis->data;
-				new_cell_idx = mul * block->length + ii->idx;
-				p = cns_buf_attach(new_block->wbuf,
-						new_wbuf_idx, new_cell_idx, ii->itft);
-				itfp = cns_block_find_itfp(new_block, new_cell_idx, ii->itft);
-				*itfp = p;
-			}
-			new_obuf_idx = new_block->obuf->head;
-			if (block->obuf->iis[idx])
-				new_block->obuf->head++;
-			for (iis = block->obuf->iis[idx]; iis; iis = iis->next) {
-				ii = (cns_buf_ii *)iis->data;
-				new_cell_idx = mul * block->length + ii->idx;
-				p = cns_buf_attach(new_block->obuf,
-						new_obuf_idx, new_cell_idx, ii->itft);
-				itfp = cns_block_find_itfp(new_block, new_cell_idx, ii->itft);
-				*itfp = p;
-			}
-			new_cbuf_idx = new_block->cbuf->head;
-			if (block->cbuf->iis[idx])
-				new_block->cbuf->head++;
-			for (iis = block->cbuf->iis[idx]; iis; iis = iis->next) {
-				ii = (cns_buf_ii *)iis->data;
-				new_cell_idx = mul * block->length + ii->idx;
-				p = cns_buf_attach(new_block->cbuf,
-						new_cbuf_idx, new_cell_idx, ii->itft);
+			/* expand wire buf */
+			new_wbc_idx = mul * block->len + idx;
+			for (iis = block->wbuf_c->iis[idx]; iis; iis = iis->next) {
+				ii = (cns_ii *)iis->data;
+				new_cell_idx = mul * block->len + ii->idx;
+				p = cns_wire_buf_link(new_block->wbuf_c,
+						new_wbc_idx, new_cell_idx, ii->itft);
 				itfp = cns_block_find_itfp(new_block, new_cell_idx, ii->itft);
 				*itfp = p;
 			}
 		}
 	}
+
+	expand_reg(block->rbuf_c, new_block->rbuf_c, multiple);
+	expand_reg(block->rbuf_i, new_block->rbuf_i, multiple);
+	expand_reg(block->rbuf_o, new_block->rbuf_o, multiple);
+	expand_reg(block->rbuf_w, new_block->rbuf_w, multiple);
 
 	cns_block_free(block);
 	return new_block;
@@ -344,7 +349,7 @@ cns_block *cns_block_expand(cns_block *block, int multiple, int extra)
 
 size_t cns_block_size(cns_block *block)
 {
-	return block->length * cns_size_of(block->dtype);
+	return block->len * cns_size_of(block->dtype);
 }
 
 void cns_block_fill(cns_block *block, int itft, void *src, size_t n)
@@ -358,13 +363,13 @@ void cns_block_fill(cns_block *block, int itft, void *src, size_t n)
 
 	switch (itft) {
 	case CNS_INPUT:
-		dst = block->ibuf->buf;
+		dst = block->rbuf_i->buf;
 		break;
 	case CNS_WEIGHT:
-		dst = block->wbuf->buf;
+		dst = block->rbuf_w->buf;
 		break;
 	case CNS_OUTPUT:
-		dst = block->obuf->buf;
+		dst = block->rbuf_o->buf;
 		break;
 	default:
 		fprintf(stderr,
@@ -388,13 +393,13 @@ void cns_block_dump(cns_block *block, int itft, void *dst, size_t n)
 
 	switch (itft) {
 	case CNS_INPUT:
-		src = block->ibuf->buf;
+		src = block->rbuf_i->buf;
 		break;
 	case CNS_WEIGHT:
-		src = block->wbuf->buf;
+		src = block->rbuf_w->buf;
 		break;
 	case CNS_OUTPUT:
-		src = block->obuf->buf;
+		src = block->rbuf_o->buf;
 		break;
 	default:
 		fprintf(stderr,
@@ -434,7 +439,7 @@ cns_list *cns_block_en_expand(cns_block *block, cns_list *ens, int base,
 		exit(EXIT_FAILURE);
 	}
 	new_len = len * multiple + cns_list_length(extras);
-	if (new_len > block->length) {
+	if (new_len > block->len) {
 		fprintf(stderr,
 			"ERROR: cns_block_en_expand: exceed block length\n");
 		exit(EXIT_FAILURE);
