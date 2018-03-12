@@ -104,6 +104,7 @@ START_TEST(test_step_run)
 	cns_free(o_buf.output);
 }
 END_TEST
+/* end of tests */
 
 Suite *make_step_suite(void)
 {
@@ -113,7 +114,10 @@ Suite *make_step_suite(void)
 	s = suite_create("step");
 	tc_step = tcase_create("step");
 	tcase_add_checked_fixture(tc_step, setup, teardown);
+
 	tcase_add_test(tc_step, test_step_run);
+	/* end of adding tests */
+
 	suite_add_tcase(s, tc_step);
 
 	return s;

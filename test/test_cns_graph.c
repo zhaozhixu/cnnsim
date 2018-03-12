@@ -255,6 +255,7 @@ START_TEST(test_graph_topsort)
 	cns_graph_free_topsortlist(res);
 }
 END_TEST
+/* end of tests */
 
 Suite *make_graph_suite(void)
 {
@@ -264,6 +265,7 @@ Suite *make_graph_suite(void)
 	TCase *tc_graph;
 	tc_graph = tcase_create("tc_graph");
 	tcase_add_checked_fixture(tc_graph, setup, teardown);
+
 	tcase_add_test(tc_graph, test_graph_node_create);
 	tcase_add_test(tc_graph, test_graph_create);
 	tcase_add_test(tc_graph, test_graph_add);
@@ -272,6 +274,8 @@ Suite *make_graph_suite(void)
 	tcase_add_test(tc_graph, test_graph_copy);
 	tcase_add_test(tc_graph, test_graph_num_outlier);
 	tcase_add_test(tc_graph, test_graph_topsort);
+	/* end of adding tests */
+
 	suite_add_tcase(s, tc_graph);
 
 	return s;

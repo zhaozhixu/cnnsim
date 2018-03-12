@@ -136,6 +136,7 @@ START_TEST(test_buf_addr)
 	ck_assert_ptr_eq(p, (uint8_t *)buf->buf+1);
 }
 END_TEST
+/* end of tests */
 
 Suite *make_buf_suite(void)
 {
@@ -145,6 +146,7 @@ Suite *make_buf_suite(void)
 	TCase *tc_buf;
 	tc_buf = tcase_create("tc_buf");
 	tcase_add_checked_fixture(tc_buf, setup, teardown);
+
 	tcase_add_test(tc_buf, test_buf_create);
 	tcase_add_test(tc_buf, test_buf_append);
 	tcase_add_test(tc_buf, test_buf_attach);
@@ -152,6 +154,8 @@ Suite *make_buf_suite(void)
 	tcase_add_test(tc_buf, test_buf_seek);
 	tcase_add_test(tc_buf, test_buf_index);
 	tcase_add_test(tc_buf, test_buf_addr);
+	/* end of adding tests */
+
 	suite_add_tcase(s, tc_buf);
 
 	return s;

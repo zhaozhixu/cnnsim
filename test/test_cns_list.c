@@ -202,6 +202,7 @@ START_TEST(test_list_from_array_size_t)
 	}
 }
 END_TEST
+/* end of tests */
 
 Suite *make_list_suite(void)
 {
@@ -211,6 +212,7 @@ Suite *make_list_suite(void)
 	TCase *tc_list;
 	tc_list = tcase_create("tc_list");
 	tcase_add_checked_fixture(tc_list, setup, teardown);
+
 	tcase_add_test(tc_list, test_list_append_nth);
 	tcase_add_test(tc_list, test_list_remove);
 	tcase_add_test(tc_list, test_list_remove_insert_nth);
@@ -220,6 +222,8 @@ Suite *make_list_suite(void)
 	tcase_add_test(tc_list, test_list_index);
 	tcase_add_test(tc_list, test_list_length);
 	tcase_add_test(tc_list, test_list_from_array_size_t);
+	/* end of adding tests */
+
 	suite_add_tcase(s, tc_list);
 
 	return s;

@@ -90,6 +90,7 @@ START_TEST(test_sch_run)
 	cns_block_free(block);
 }
 END_TEST
+/* end of tests */
 
 Suite *make_sch_suite(void)
 {
@@ -99,7 +100,10 @@ Suite *make_sch_suite(void)
 	s = suite_create("sch");
 	tc_sch = tcase_create("sch");
 	tcase_add_checked_fixture(tc_sch, setup, teardown);
+
 	tcase_add_test(tc_sch, test_sch_run);
+	/* end of adding tests */
+
 	suite_add_tcase(s, tc_sch);
 
 	return s;

@@ -49,6 +49,7 @@ START_TEST(test_queue_enqueue_dequeue)
 	cns_queue_free(q);
 }
 END_TEST
+/* end of tests */
 
 Suite *make_queue_suite(void)
 {
@@ -58,8 +59,11 @@ Suite *make_queue_suite(void)
 	TCase *tc_queue;
 	tc_queue = tcase_create("tc_queue");
 	tcase_add_checked_fixture(tc_queue, setup, teardown);
+
 	tcase_add_test(tc_queue, test_queue_create);
 	tcase_add_test(tc_queue, test_queue_enqueue_dequeue);
+	/* end of adding tests */
+
 	suite_add_tcase(s, tc_queue);
 
 	return s;

@@ -20,6 +20,7 @@ START_TEST(test_tensor)
 	cns_tensor_free(tensor, CNS_FALSE);
 }
 END_TEST
+/* end of tests */
 
 Suite *make_tensor_suite(void)
 {
@@ -29,7 +30,9 @@ Suite *make_tensor_suite(void)
 	TCase *tc_tensor;
 	tc_tensor = tcase_create("tensor");
 	tcase_add_test(tc_tensor, test_tensor);
+
 	suite_add_tcase(s, tc_tensor);
+	/* end of adding tests */
 
 	return s;
 }

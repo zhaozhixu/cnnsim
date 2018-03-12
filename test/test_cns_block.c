@@ -624,6 +624,7 @@ START_TEST(test_block_run)
 	cns_graph_free_topsortlist(run_list);
 }
 END_TEST
+/* end of tests */
 
 Suite *make_block_suite(void)
 {
@@ -633,6 +634,7 @@ Suite *make_block_suite(void)
 	s = suite_create("block");
 	tc_block = tcase_create("block");
 	tcase_add_checked_fixture(tc_block, setup, teardown);
+
 	tcase_add_test(tc_block, test_block_set_op);
 	tcase_add_test(tc_block, test_block_dep_graph);
 	tcase_add_test(tc_block, test_block_link_io);
@@ -643,6 +645,8 @@ Suite *make_block_suite(void)
 	tcase_add_test(tc_block, test_block_fill);
 	tcase_add_test(tc_block, test_block_dump);
 	tcase_add_test(tc_block, test_block_run);
+	/* end of adding tests */
+
 	suite_add_tcase(s, tc_block);
 
 	return s;

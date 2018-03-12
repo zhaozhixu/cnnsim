@@ -16,9 +16,10 @@ extern "C" {
 	Suite *make_buf_suite(void);
 	Suite *make_step_suite(void);
 	Suite *make_sch_suite(void);
+	/* end of declarations */
 
 #ifdef _cplusplus
 }
 #endif
 
-#endif	/* _TEST_CNNSIM_H_ */
+#endif /* _TEST_CNNSIM_H_ */
