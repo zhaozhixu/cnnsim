@@ -34,6 +34,8 @@ typedef void (* cns_fprint_func) (FILE *fp, void *data);
 
 #define cns_free free
 
+#define CNS_MAXLINE 4096;
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -46,6 +48,13 @@ extern "C" {
 	size_t cns_size_of(cns_dtype dtype);
 	int cns_pointer_sub(void *p1, void *p2, cns_dtype dtype);
 	void *cns_pointer_add(void *p, int offset, cns_dtype dtype);
+	void cns_err_msg(const char *fmt, ...);
+	void cns_err_cont(int error, const char *fmt, ...);
+	void cns_err_ret(const char *fmt, ...);
+	void cns_err_quit(const char *fmt, ...) __attribute__((noreturn));
+	void cns_err_exit(int error, const char *fmt, ...) __attribute__((noreturn));
+	void cns_err_sys(const char *fmt, ...) __attribute__((noreturn));
+	void cns_err_dump(const char *fmt, ...) __attribute__((noreturn));
 
 #ifdef __cplusplus
 }

@@ -14,7 +14,7 @@ int main(int argc, char **argv)
 	srunner_add_suite(sr, make_tensor_suite());
 	srunner_add_suite(sr, make_queue_suite());
 	srunner_add_suite(sr, make_graph_suite());
-	srunner_add_suite(sr, make_buf_suite());
+	srunner_add_suite(sr, make_wire_suite());
 	srunner_add_suite(sr, make_block_suite());
 	srunner_add_suite(sr, make_step_suite());
 	srunner_add_suite(sr, make_sch_suite());

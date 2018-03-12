@@ -5,6 +5,7 @@
 #include <assert.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdarg.h>
 
 #include "cns_util.h"
 
@@ -99,7 +100,7 @@ int cns_compute_length(uint32_t ndim, uint32_t *dims)
                len *= dims[i];
           return len;
      }
-     fprintf(stderr, "Warning: null dims in computeLength\n");
+     cns_err_msg("Warning: cns_compute_length: null dims\n");
      return 0;
 }
 
@@ -133,8 +134,7 @@ size_t cns_size_of(cns_dtype dtype)
           size = sizeof(uint8_t);
           break;
      default:
-          fprintf(stderr, "ERROR: cns_size_of: unknown cns_dtype %d\n", dtype);
-          exit(EXIT_FAILURE);
+          cns_err_quit("ERROR: cns_size_of: unknown cns_dtype %d\n", dtype);
      }
      return size;
 }
@@ -159,8 +159,7 @@ int cns_pointer_sub(void *p1, void *p2, cns_dtype dtype)
      case CNS_UINT8:
           return (uint8_t *)p1 - (uint8_t *)p2;
      default:
-          fprintf(stderr, "ERROR: cns_pointer_sub: unknown cns_dtype %d\n", dtype);
-          exit(EXIT_FAILURE);
+          cns_err_quit("ERROR: cns_pointer_sub: unknown cns_dtype %d\n", dtype);
      }
 }
 
@@ -184,7 +183,114 @@ void *cns_pointer_add(void *p, int offset, cns_dtype dtype)
      case CNS_UINT8:
           return (uint8_t *)p + offset;
      default:
-          fprintf(stderr, "ERROR: cns_pointer_add: unknown cns_dtype %d\n", dtype);
-          exit(EXIT_FAILURE);
+          cns_err_quit("ERROR: cns_pointer_add: unknown cns_dtype %d\n", dtype);
      }
+}
+
+static void err_doit(int errnoflag, int error, const char *fmt, va_list ap)
+{
+     char buf[CNS_MAXLINE];
+
+     vsnprintf(buf, CNS_MAXLINE-1, fmt, ap);
+     if (errnoflag)
+          snprintf(buf+strlen(buf), CNS_MAXLINE-strlen(buf)-1, ": %s",
+               strerror(error));
+     strcat(buf, "\n");
+     fflush(stdout);
+     fputs(buf, stderr);
+     fflush(NULL);
+}
+
+/*
+ * Nonfatal error unrelated to a system call.
+ * Print a message and return.
+ */
+void cns_err_msg(const char *fmt, ...)
+{
+     va_list ap;
+     va_start(ap, fmt);
+     err_doit(0, 0, fmt, ap);
+     va_end(ap);
+}
+
+/*
+ * Nonfatal error unrelated to a system call.
+ * Error code passed as explict parameter.
+ * Print a message and return.
+ */
+void cns_err_cont(int error, const char *fmt, ...)
+{
+     va_list ap;
+     va_start(ap, fmt);
+     err_doit(1, error, fmt, ap);
+     va_end(ap);
+}
+
+/*
+ * Nonfatal error related to a system call.
+ * Print a message and return.
+ */
+void cns_err_ret(const char *fmt, ...)
+{
+     va_list ap;
+     va_start(ap, fmt);
+     err_doit(1, errno, fmt, ap);
+     va_end(ap);
+}
+
+/*
+ * Fatal error unrelated to a system call.
+ * Print a message and terminate.
+ */
+void cns_err_quit(const char *fmt, ...)
+{
+     va_list ap;
+     va_start(ap, fmt);
+     err_doit(0, 0, fmt, ap);
+     va_end(ap);
+     exit(1);
+}
+
+/*
+ * Fatal error unrelated to a system call.
+ * Error code passed as explict parameter.
+ * Print a message and terminate.
+ */
+void cns_err_exit(int error, const char *fmt, ...)
+{
+     va_list
+          ap;
+     va_start(ap, fmt);
+     err_doit(1, error, fmt, ap);
+     va_end(ap);
+     exit(1);
+}
+
+/*
+ * Fatal error related to a system call.
+ * Print a message and terminate.
+ */
+void cns_err_sys(const char *fmt, ...)
+{
+     va_list ap;
+     va_start(ap, fmt);
+     err_doit(1, errno, fmt, ap);
+     va_end(ap);
+     exit(1);
+}
+
+/*
+ * Fatal error related to a system call.
+ * Print a message, dump core, and terminate.
+ */
+void cns_err_dump(const char *fmt, ...)
+{
+     va_list ap;
+     va_start(ap, fmt);
+     err_doit(1, errno, fmt, ap);
+     va_end(ap);
+     abort();
+/* dump core and terminate */
+     exit(1);
+/* shouldn’t get here */
 }

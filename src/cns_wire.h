@@ -8,7 +8,7 @@
 typedef struct cns_wire_buf cns_wire_buf;
 struct cns_wire_buf {
 	cns_dtype  dtype;
-	size_t     length;
+	size_t     len;
 	size_t     head;
 	cns_list **iis;
 	void      *buf;
@@ -18,7 +18,7 @@ struct cns_wire_buf {
 extern "C" {
 #endif
 
-	cns_wire_buf *cns_wire_buf_create(size_t length, cns_dtype dtype);
+	cns_wire_buf *cns_wire_buf_create(size_t len, cns_dtype dtype);
 	void cns_wire_buf_free(cns_wire_buf *wire_buf);
 	int cns_wire_buf_index(cns_wire_buf *buf, void *addr);
 	void *cns_wire_buf_addr(cns_wire_buf *buf, int b_idx);

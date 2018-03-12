@@ -69,8 +69,7 @@ cns_tensor *cns_tensor_alloc(uint32_t ndim, uint32_t *dims, cns_dtype dtype)
 		data = (void *)cns_alloc(sizeof(uint8_t) * t->len);
 		break;
 	default:
-		fprintf(stderr, "ERROR: cns_tensor_alloc: unknown cns_dtype %d\n", dtype);
-		exit(EXIT_FAILURE);
+		cns_err_quit("ERROR: cns_tensor_alloc: unknown cns_dtype %d\n", dtype);
 	}
 	t->data = data;
 	return t;
@@ -211,8 +210,7 @@ void cns_tensor_fprint(FILE *stream, const cns_tensor *tensor, const char *fmt)
 		fprint_data = &fprint_uint8;
 		break;
 	default:
-		fprintf(stderr, "ERROR: cns_tensor_fprint: unknown cns_dtype %d\n", dtype);
-		exit(EXIT_FAILURE);
+		cns_err_quit("ERROR: cns_tensor_fprint: unknown cns_dtype %d\n", dtype);
 	}
 
 	for (i = ndim-1; i >= 0; i--) {

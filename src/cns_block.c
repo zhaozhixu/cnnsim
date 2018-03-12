@@ -130,11 +130,8 @@ void **cns_block_find_itfp(cns_block *block, size_t idx, int itft)
 {
 	void **itfp;
 
-	if (idx >= block->len) {
-		fprintf(stderr,
-			"ERROR: cns_block_find_itfp: cell array out of bound\n");
-		exit(EXIT_FAILURE);
-	}
+	if (idx >= block->len)
+		cns_err_quit("ERROR: cns_block_find_itfp: cell array out of bound\n");
 
 	switch (itft) {
 	case CNS_INPUT:
@@ -147,10 +144,8 @@ void **cns_block_find_itfp(cns_block *block, size_t idx, int itft)
 		itfp = &block->cells[idx].data.weight;
 		break;
 	default:
-		fprintf(stderr,
-			"ERROR: cns_block_find_itfp: unknown cns_interface_type %d\n",
+		cns_err_quit("ERROR: cns_block_find_itfp: unknown cns_interface_type %d\n",
 			itft);
-		exit(EXIT_FAILURE);
 	}
 
 	return itfp;
@@ -185,8 +180,9 @@ void cns_block_link(cns_block *block, size_t idx1, int itft1, size_t idx2, int i
 	/* Shouldn't enter this branch in practice,
 	   causing an dangling interface easily. */
 	if (*itfp1 && *itfp2) {
+		cns_err_msg("WARNING: cns_block_link: linking two attached interfaces\n");
 		fprintf(stderr,
-			"WARNING: cns_block_link: linking two attached interfaces\n");
+			);
 		if (*itfp1 == *itfp2)
 			return;
 		b_idx1 = cns_wire_buf_index(block->wbuf_c, *itfp1);
@@ -223,10 +219,8 @@ void cns_block_link_io(cns_block *block, size_t ori, cns_list *iis, int itft)
 		buf = cns_reg_buf_link(block->rbuf_w, ori, iis);
 		break;
 	default:
-		fprintf(stderr,
-			"ERROR: cns_block_link_io: unknown cns_interface_type %d\n",
+		cns_err_quit("ERROR: cns_block_link_io: unknown cns_interface_type %d\n",
 			itft);
-		exit(EXIT_FAILURE);
 	}
 
 	for (l = iis, i = 0; l; l = l->next, i++) {
@@ -291,22 +285,13 @@ cns_block *cns_block_expand(cns_block *block, int multiple, int extra)
 	void *p;
 	void **itfp;
 
-	if (multiple <= 0) {
-		fprintf(stderr,
-			"ERROR: cns_block_expand: multiple must be positive\n");
-		exit(EXIT_FAILURE);
-	}
-	if (extra < 0) {
-		fprintf(stderr,
-			"ERROR: cns_block_expand: extra can't be negative\n");
-		exit(EXIT_FAILURE);
-	}
+	if (multiple <= 0)
+		cns_err_quit("ERROR: cns_block_expand: multiple must be positive\n");
+	if (extra < 0)
+		cns_err_quit("ERROR: cns_block_expand: extra can't be negative\n");
 	new_len = block->len * multiple + extra;
-	if (new_len > CNS_MAX_CELLS) {
-		fprintf(stderr,
-			"ERROR: cns_block_expand: exceed maximum CNS_MAX_CELLS\n");
-		exit(EXIT_FAILURE);
-	}
+	if (new_len > CNS_MAX_CELLS)
+		cns_err_quit("ERROR: cns_block_expand: exceed maximum CNS_MAX_CELLS\n");
 	new_block = cns_block_create(new_len, block->dtype, block->width);
 
 	for (mul = 0; mul < multiple; mul++) {
@@ -356,10 +341,8 @@ void cns_block_fill(cns_block *block, int itft, void *src, size_t n)
 {
 	void *dst;
 
-	if (cns_block_size(block) < n) {
-		fprintf(stderr, "ERROR: cns_block_fill: buffer overflow\n");
-		exit(EXIT_FAILURE);
-	}
+	if (cns_block_size(block) < n)
+		cns_err_quit("ERROR: cns_block_fill: buffer overflow\n");
 
 	switch (itft) {
 	case CNS_INPUT:
@@ -372,10 +355,8 @@ void cns_block_fill(cns_block *block, int itft, void *src, size_t n)
 		dst = block->rbuf_o->buf;
 		break;
 	default:
-		fprintf(stderr,
-			"ERROR: cns_block_fill: unknown cns_interface_type %d\n",
+		cns_err_quit("ERROR: cns_block_fill: unknown cns_interface_type %d\n",
 			itft);
-		exit(EXIT_FAILURE);
 	}
 
 	memmove(dst, src, n);
@@ -385,11 +366,8 @@ void cns_block_dump(cns_block *block, int itft, void *dst, size_t n)
 {
 	void *src;
 
-	if (cns_block_size(block) < n) {
-		fprintf(stderr,
-			"WARNING: cns_block_dump: requested size is larger than buffer size\n");
-		n = cns_block_size(block);
-	}
+	if (cns_block_size(block) < n)
+		cns_err_msg("WARNING: cns_block_dump: requested size is larger than buffer size\n");
 
 	switch (itft) {
 	case CNS_INPUT:
@@ -402,10 +380,8 @@ void cns_block_dump(cns_block *block, int itft, void *dst, size_t n)
 		src = block->rbuf_o->buf;
 		break;
 	default:
-		fprintf(stderr,
-			"ERROR: cns_block_dump: unknown cns_interface_type %d\n",
+		cns_err_quit("ERROR: cns_block_dump: unknown cns_interface_type %d\n",
 			itft);
-		exit(EXIT_FAILURE);
 	}
 
 	memmove(dst, src, n);
@@ -422,28 +398,16 @@ cns_list *cns_block_en_expand(cns_block *block, cns_list *ens, int base,
 	cns_list *l;
 	int m;
 
-	if (base <= 0) {
-		fprintf(stderr,
-			"ERROR: cns_block_en_expand: base must be positive\n");
-		exit(EXIT_FAILURE);
-	}
-	if (multiple <= 0) {
-		fprintf(stderr,
-			"ERROR: cns_block_en_expand: multiple must be positive\n");
-		exit(EXIT_FAILURE);
-	}
+	if (base <= 0)
+		cns_err_quit("ERROR: cns_block_en_expand: base must be positive\n");
+	if (multiple <= 0)
+		cns_err_quit("ERROR: cns_block_en_expand: multiple must be positive\n");
 	len = cns_list_length(ens);
-	if (len > base) {
-		fprintf(stderr,
-			"ERROR: cns_block_en_expand: ens length larger than base\n");
-		exit(EXIT_FAILURE);
-	}
+	if (len > base)
+		cns_err_quit("ERROR: cns_block_en_expand: ens length larger than base\n");
 	new_len = len * multiple + cns_list_length(extras);
-	if (new_len > block->len) {
-		fprintf(stderr,
-			"ERROR: cns_block_en_expand: exceed block length\n");
-		exit(EXIT_FAILURE);
-	}
+	if (new_len > block->len)
+		cns_err_quit("ERROR: cns_block_en_expand: exceed block length\n");
 
 	new_ens = NULL;
 	for (m = 0; m < multiple; m++) {
