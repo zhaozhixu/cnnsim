@@ -13,7 +13,9 @@ extern "C" {
 	Suite *make_list_suite(void);
 	Suite *make_queue_suite(void);
 	Suite *make_graph_suite(void);
+	Suite *make_ii_suite(void);
 	Suite *make_wire_suite(void);
+	Suite *make_reg_suite(void);
 	/* Suite *make_step_suite(void); */
 	/* Suite *make_sch_suite(void); */
 	/* end of declarations */
