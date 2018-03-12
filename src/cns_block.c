@@ -181,8 +181,6 @@ void cns_block_link(cns_block *block, size_t idx1, int itft1, size_t idx2, int i
 	   causing an dangling interface easily. */
 	if (*itfp1 && *itfp2) {
 		cns_err_msg("WARNING: cns_block_link: linking two attached interfaces\n");
-		fprintf(stderr,
-			);
 		if (*itfp1 == *itfp2)
 			return;
 		b_idx1 = cns_wire_buf_index(block->wbuf_c, *itfp1);
@@ -238,6 +236,7 @@ void cns_block_link_c(cns_block *block, size_t ori, cns_list *iis)
 	cns_list *l;
 	cns_ii *ii;
 	int i;
+	void **itfp;
 
 	buf = cns_reg_buf_link(block->rbuf_c, ori, iis);
 	for (l = iis, i = 0; l; l = l->next) {
@@ -249,13 +248,14 @@ void cns_block_link_c(cns_block *block, size_t ori, cns_list *iis)
 
 static void expand_reg(cns_reg_buf *rbuf, cns_reg_buf *new_rbuf, int multiple)
 {
-	cns_regs *reg;
+	cns_reg *reg;
 	cns_list *regs;
 	cns_ii *ii;
 	cns_list *iis;
 	cns_list *new_iis;
 	int mul;
 
+	new_iis = NULL;
 	for (regs = rbuf->regs; regs; regs = regs->next) {
 		reg = (cns_reg *)regs->data;
 		for (mul = 0; mul < multiple; mul++) {

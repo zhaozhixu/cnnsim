@@ -34,7 +34,7 @@ typedef void (* cns_fprint_func) (FILE *fp, void *data);
 
 #define cns_free free
 
-#define CNS_MAXLINE 4096;
+#define CNS_MAXLINE 4096
 
 #ifdef __cplusplus
 extern "C" {

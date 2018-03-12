@@ -23,7 +23,7 @@ START_TEST(test_cns_wire_buf_create)
 	ck_assert_int_eq(buf->len, len);
 	ck_assert_int_eq(buf->head, 0);
 	for (i = 0; i < buf->len; i++) {
-		ck_assert_int_eq((int8_t)buf->buf[i], 0);
+		ck_assert_int_eq(((int8_t *)buf->buf)[i], 0);
 		ck_assert_ptr_eq(buf->iis[i], NULL);
 	}
 
@@ -66,20 +66,71 @@ START_TEST(test_cns_wire_buf_link)
 	cns_wire_buf_link(buf, 0, 0, CNS_INPUT);
 	ii = cns_list_nth_data(buf->iis[0], 0);
 	ck_assert_int_eq(ii->idx, 0);
-	ck_assert_int_eq(ii->itft, 0);
+	ck_assert_int_eq(ii->itft, CNS_INPUT);
+
+	cns_wire_buf_link(buf, 0, 1, CNS_WEIGHT);
+	ii = cns_list_nth_data(buf->iis[0], 1);
+	ck_assert_int_eq(ii->idx, 1);
+	ck_assert_int_eq(ii->itft, CNS_WEIGHT);
+
+	cns_wire_buf_link(buf, 1, 0, CNS_WEIGHT);
+	ii = cns_list_nth_data(buf->iis[1], 0);
+	ck_assert_int_eq(ii->idx, 0);
+	ck_assert_int_eq(ii->itft, CNS_WEIGHT);
 
 	cns_wire_buf_free(buf);
-
 }
 END_TEST
 
 START_TEST(test_cns_wire_buf_unlink)
 {
+	cns_wire_buf *buf;
+	cns_ii *ii;
+
+	buf = cns_wire_buf_create(len, CNS_INT8);
+	cns_wire_buf_link(buf, 0, 0, CNS_INPUT);
+	cns_wire_buf_link(buf, 0, 1, CNS_WEIGHT);
+	cns_wire_buf_link(buf, 1, 0, CNS_WEIGHT);
+
+	cns_wire_buf_unlink(buf, 1, 0, CNS_WEIGHT);
+	ii = cns_list_nth_data(buf->iis[1], 0);
+	ck_assert_ptr_eq(ii, NULL);
+
+	cns_wire_buf_unlink(buf, 0, 2, CNS_INPUT);
+	ii = cns_list_nth_data(buf->iis[0], 0);
+	ck_assert_int_eq(ii->idx, 0);
+	ck_assert_int_eq(ii->itft, CNS_INPUT);
+	ii = cns_list_nth_data(buf->iis[0], 1);
+	ck_assert_int_eq(ii->idx, 1);
+	ck_assert_int_eq(ii->itft, CNS_WEIGHT);
+	ii = cns_list_nth_data(buf->iis[0], 2);
+	ck_assert_ptr_eq(ii, NULL);
+
+	cns_wire_buf_free(buf);
 }
 END_TEST
 
 START_TEST(test_cns_wire_buf_append)
 {
+	cns_wire_buf *buf;
+	cns_ii *ii;
+
+	buf = cns_wire_buf_create(len, CNS_INT8);
+	cns_wire_buf_append(buf, 0, CNS_INPUT);
+	ii = cns_list_nth_data(buf->iis[0], 0);
+	ck_assert_int_eq(ii->idx, 0);
+	ck_assert_int_eq(ii->itft, CNS_INPUT);
+
+	cns_wire_buf_append(buf, 1, CNS_INPUT);
+	ii = cns_list_nth_data(buf->iis[0], 1);
+	ck_assert_ptr_eq(ii, NULL);
+	ii = cns_list_nth_data(buf->iis[1], 0);
+	ck_assert_int_eq(ii->idx, 1);
+	ck_assert_int_eq(ii->itft, CNS_INPUT);
+	ii = cns_list_nth_data(buf->iis[1], 1);
+	ck_assert_ptr_eq(ii, NULL);
+
+	cns_wire_buf_free(buf);
 }
 END_TEST
 /* end of tests */

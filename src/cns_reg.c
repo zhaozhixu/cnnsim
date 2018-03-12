@@ -1,3 +1,4 @@
+#include <string.h>
 #include "cns_reg.h"
 
 cns_reg *cns_reg_create(size_t ori, cns_list *iis)
@@ -21,7 +22,7 @@ void cns_reg_free(cns_reg *reg)
 cns_reg_buf *cns_reg_buf_create(size_t len, cns_dtype dtype)
 {
 	cns_reg_buf *buf;
-	size_t size, i;
+	size_t size;
 
 	buf = (cns_reg_buf *)cns_alloc(sizeof(cns_reg_buf));
 	size = cns_size_of(dtype) * len;

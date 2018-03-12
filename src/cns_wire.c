@@ -1,3 +1,4 @@
+#include <string.h>
 #include "cns_wire.h"
 
 cns_wire_buf *cns_wire_buf_create(size_t len, cns_dtype dtype)
@@ -21,7 +22,6 @@ cns_wire_buf *cns_wire_buf_create(size_t len, cns_dtype dtype)
 
 void cns_wire_buf_free(cns_wire_buf *wire_buf)
 {
-	cns_list *l;
 	size_t i;
 
 	for (i = 0; i < wire_buf->len; i++)
@@ -61,7 +61,7 @@ void cns_wire_buf_unlink(cns_wire_buf *buf, size_t b_idx, size_t idx, int itft)
 	if (b_idx > buf->len-1)
 		cns_err_quit("ERROR: cns_wire_buf_unlink: buffer array out of bounds");
 	ii = cns_ii_create(idx, itft);
-	found_idx = cns_list_index_custom(buf->iis[b_idx], ii, ii_cmp);
+	found_idx = cns_list_index_custom(buf->iis[b_idx], ii, cns_ii_cmp);
 	cns_free(ii);
 	if (found_idx < 0)
 		return;
