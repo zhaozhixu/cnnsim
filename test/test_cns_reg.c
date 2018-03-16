@@ -65,7 +65,6 @@ START_TEST(test_cns_reg_buf_link)
 {
 	cns_reg_buf *buf;
 	cns_list *iis;
-	cns_ii *ii;
 	void *p;
 
 	buf = cns_reg_buf_create(len, CNS_INT8);
