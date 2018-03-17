@@ -26,7 +26,8 @@ enum cns_dtype {
 enum cns_interface_type {
 	CNS_INPUT,
 	CNS_OUTPUT,
-	CNS_WEIGHT
+	CNS_WEIGHT,
+	CNS_CHORE
 };
 
 typedef int (*cns_cmp_func)(void *, void *);

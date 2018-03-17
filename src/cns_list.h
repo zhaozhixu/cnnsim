@@ -32,6 +32,7 @@ extern "C" {
 	int cns_list_index_custom(cns_list *list, void *data, cns_cmp_func cmp);
 	int cns_list_length(cns_list *list);
 	cns_list *cns_list_from_array_size_t(size_t *array, size_t n);
+	cns_list *cns_list_copy_size_t(cns_list *list);
 
 #ifdef __cplusplus
 }

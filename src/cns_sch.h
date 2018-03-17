@@ -6,7 +6,7 @@
 
 typedef struct cns_sch cns_sch;
 struct cns_sch {
-	int       length;
+	int       len;
 	cns_list *steps;
 };
 

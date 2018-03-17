@@ -198,3 +198,15 @@ cns_list *cns_list_from_array_size_t(size_t *array, size_t n)
 		res = cns_list_append(res, (void *)array[i]);
 	return res;
 }
+
+cns_list *cns_list_copy_size_t(cns_list *list)
+{
+	cns_list *list_cpy;
+	cns_list *l;
+
+	list_cpy = NULL;
+	for (l = list; l; l = l->next)
+		list_cpy = cns_list_append(list_cpy, l->data);
+
+	return list_cpy;
+}

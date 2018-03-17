@@ -143,6 +143,9 @@ void **cns_block_find_itfp(cns_block *block, size_t idx, int itft)
 	case CNS_WEIGHT:
 		itfp = &block->cells[idx].data.weight;
 		break;
+	case CNS_CHORE:
+		cns_err_quit("ERROR: cns_block_find_itfp:  %d\n",
+			itft);
 	default:
 		cns_err_quit("ERROR: cns_block_find_itfp: unknown cns_interface_type %d\n",
 			itft);
@@ -216,6 +219,9 @@ void cns_block_link_io(cns_block *block, size_t ori, cns_list *iis, int itft)
 	case CNS_WEIGHT:
 		buf = cns_reg_buf_link(block->rbuf_w, ori, iis);
 		break;
+	case CNS_CHORE:
+		cns_err_quit("ERROR: cns_block_link_io:  %d\n",
+			itft);
 	default:
 		cns_err_quit("ERROR: cns_block_link_io: unknown cns_interface_type %d\n",
 			itft);
@@ -354,6 +360,8 @@ void cns_block_fill(cns_block *block, int itft, void *src, size_t n)
 	case CNS_OUTPUT:
 		dst = block->rbuf_o->buf;
 		break;
+	case CNS_CHORE:
+		dst = block->rbuf_c->buf;
 	default:
 		cns_err_quit("ERROR: cns_block_fill: unknown cns_interface_type %d\n",
 			itft);
@@ -379,6 +387,8 @@ void cns_block_dump(cns_block *block, int itft, void *dst, size_t n)
 	case CNS_OUTPUT:
 		src = block->rbuf_o->buf;
 		break;
+	case CNS_CHORE:
+		src = block->rbuf_c->buf;
 	default:
 		cns_err_quit("ERROR: cns_block_dump: unknown cns_interface_type %d\n",
 			itft);
