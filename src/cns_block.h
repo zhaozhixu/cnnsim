@@ -22,7 +22,7 @@ struct cns_block {
 	cns_wire_buf   *wbuf_c;	/* chore buffer of wire */
 };
 
-typedef void (* cns_block_op) (cns_block *block, void *data);
+/* typedef void (* cns_block_op) (cns_block *block, void *data); */
 
 #ifdef __cplusplus
 extern "C" {
